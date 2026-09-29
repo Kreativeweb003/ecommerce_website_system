@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load static %}
+{% load cloudinary_extras %}
+
+{% block title %}Your wishlist — Northfield{% endblock %}
+
+{% block content %}
+<div class="shell section--tight">
+  <h1 class="display-lg" style="margin-bottom: var(--sp-6);">Your wishlist</h1>
+
+  {% if items %}
+    <div class="grid grid--products">
+      {% for item in items %}
+        <div class="product-tile js-wishlist-row-{{ item.pk }}">
+          <a href="{% url 'products:product_detail' slug=item.product.slug %}">
+            <div class="product-tile__image">
+              {% if item.has_price_dropped %}<span class="badge badge--tag product-tile__badge">Price drop</span>{% endif %}
+              {% with item.product.images.first as first_image %}
+                {% if first_image %}<img src="{{ first_image.image|optimized }}" alt="{{ item.product.name }}">{% endif %}
+              {% endwith %}
+            </div>
+            <p class="product-tile__title">{{ item.product.name }}</p>
+          </a>
+          <p>
+            <span class="price {% if item.has_price_dropped %}price--sale{% endif %}">${{ item.current_price }}</span>
+            {% if item.has_price_dropped %}<span class="price--was">${{ item.price_at_addition }}</span>{% endif %}
+          </p>
+          <div class="row gap-2" style="margin-top: var(--sp-2);">
+            <button class="btn btn--primary btn--sm js-wishlist-move-to-cart" data-item-id="{{ item.pk }}" style="flex:1;">Add to cart</button>
+            <button class="icon-btn js-wishlist-remove" data-item-id="{{ item.pk }}" aria-label="Remove">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h3>Your wishlist is empty</h3>
+      <p style="margin-bottom: var(--sp-4);">Save items you're thinking about for later.</p>
+      <a href="{% url 'products:product_list' %}" class="btn btn--primary">Browse products</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/wishlist.js' %}"></script>
+{% endblock %}

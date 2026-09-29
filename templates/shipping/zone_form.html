@@ -1,0 +1,19 @@
+{% extends "dashboard/_dash_base.html" %}
+
+{% block dash_title %}{{ action }} shipping zone{% endblock %}
+{% block dash_heading %}{{ action }} shipping zone{% endblock %}
+
+{% block dash_content %}
+<form method="post" class="form-card">
+  {% csrf_token %}
+  {% for field in form %}
+    <div class="field {% if field.name == 'is_active' %}field--checkbox{% endif %}">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.help_text %}<p class="field-hint">{{ field.help_text }}</p>{% endif %}
+      {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+    </div>
+  {% endfor %}
+  <button type="submit" class="btn btn--primary btn--block">Save zone</button>
+</form>
+{% endblock %}

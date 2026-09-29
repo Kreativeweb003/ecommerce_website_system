@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Your orders — Northfield{% endblock %}
+
+{% block content %}
+<div class="shell section--tight">
+  <h1 class="display-lg" style="margin-bottom: var(--sp-6);">Your orders</h1>
+
+  {% if orders %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th>Order</th><th>Date</th><th>Status</th><th>Total</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+            <tr>
+              <td class="font-medium">{{ order.order_number }}</td>
+              <td class="text-soft">{{ order.created_at|date:"M j, Y" }}</td>
+              <td><span class="badge {% if order.status == 'delivered' %}badge--success{% elif order.status == 'cancelled' %}badge--danger{% else %}badge--accent{% endif %}">{{ order.get_status_display }}</span></td>
+              <td class="font-semibold">${{ order.total }}</td>
+              <td><a href="{% url 'orders:order_detail' order_number=order.order_number %}" class="btn btn--ghost btn--sm">View</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h3>No orders yet</h3>
+      <p style="margin-bottom: var(--sp-4);">When you place an order, it'll show up here.</p>
+      <a href="{% url 'products:product_list' %}" class="btn btn--primary">Start shopping</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

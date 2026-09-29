@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Your addresses — Northfield{% endblock %}
+
+{% block content %}
+<div class="shell section--tight" style="max-width: 720px;">
+  <h1 class="display-lg" style="margin-bottom: var(--sp-6);">Your addresses</h1>
+
+  <div class="row gap-3" style="margin-bottom: var(--sp-6);">
+    <a href="{% url 'accounts:profile' %}" class="btn btn--ghost">Profile</a>
+    <a href="{% url 'accounts:change_password' %}" class="btn btn--ghost">Password</a>
+    <a href="{% url 'accounts:address_list' %}" class="btn btn--outline is-active">Addresses</a>
+    <a href="{% url 'orders:order_list' %}" class="btn btn--ghost">Orders</a>
+  </div>
+
+  <a href="{% url 'accounts:address_create' %}" class="btn btn--primary" style="margin-bottom: var(--sp-5);">Add address</a>
+
+  {% if addresses %}
+    <div class="stack gap-3">
+      {% for address in addresses %}
+        <div class="card row row--between">
+          <div>
+            <p class="font-semibold">{{ address.full_name }} {% if address.is_default %}<span class="badge badge--accent">Default</span>{% endif %}</p>
+            <p class="text-soft text-sm">{{ address.street_address }}{% if address.apartment %}, {{ address.apartment }}{% endif %}</p>
+            <p class="text-soft text-sm">{{ address.city }}, {{ address.state }} {{ address.postal_code }}, {{ address.country }}</p>
+            <p class="text-faint text-sm">{{ address.phone_number }}</p>
+          </div>
+          <div class="row gap-2">
+            <a href="{% url 'accounts:address_update' pk=address.pk %}" class="btn btn--ghost btn--sm">Edit</a>
+            <a href="{% url 'accounts:address_delete' pk=address.pk %}" class="btn btn--ghost btn--sm text-danger">Delete</a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h3>No addresses saved yet</h3>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

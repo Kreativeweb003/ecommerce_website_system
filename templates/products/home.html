@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% load cloudinary_extras %}
+
+{% block title %}Northfield — Considered goods for everyday use{% endblock %}
+
+{% block content %}
+<div class="shell">
+
+  <section class="hero-panel">
+    <div>
+      <h1 class="display-xl">Feel the sound.<br><span class="text-accent">Live</span> the moment.</h1>
+      <p class="text-soft" style="max-width: 400px; margin: var(--sp-4) 0 var(--sp-5); font-size: 16px;">
+        Considered everyday goods designed for those who care about quality and modern style.
+      </p>
+      <div class="row gap-3">
+        <a href="{% url 'products:product_list' %}" class="btn btn--primary btn--lg">Shop Now &rarr;</a>
+        <a href="{% url 'products:product_list' %}" class="btn btn--outline btn--lg">Explore More</a>
+      </div>
+
+      <div class="hero-panel__eyebrow-icons">
+        <div class="hero-icon-item">
+          <span class="hero-icon-item__glyph">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h13l4 4v6h-3M3 7v10h3M3 7l2-3h9l2 3"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="17.5" cy="17.5" r="1.5"/></svg>
+          </span>
+          <span class="hero-icon-item__text"><strong>Free Shipping</strong><span>On all orders</span></span>
+        </div>
+        <div class="hero-icon-item">
+          <span class="hero-icon-item__glyph">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg>
+          </span>
+          <span class="hero-icon-item__text"><strong>Secure Payment</strong><span>100% secure</span></span>
+        </div>
+        <div class="hero-icon-item">
+          <span class="hero-icon-item__glyph">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v6h6M20 20v-6h-6"/><path d="M4.5 15a8 8 0 0 0 14.7 2.9M19.5 9A8 8 0 0 0 4.8 6.1"/></svg>
+          </span>
+          <span class="hero-icon-item__text"><strong>Easy Returns</strong><span>Hassle free</span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-panel__visual">
+      {% with featured_products.0.images.first as hero_image %}
+        {% if hero_image %}<img src="{{ hero_image.image|optimized }}" alt="{{ featured_products.0.name }}">{% endif %}
+      {% endwith %}
+      {% if featured_products.0.is_on_sale %}
+        <div class="hero-panel__discount">Up to<br>{{ featured_products.0.discount_percentage }}%<span>Off</span></div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="section--tight">
+    <div class="row row--between" style="margin-bottom: var(--sp-5);">
+      <h2 class="display-md">Featured Products</h2>
+      <a href="{% url 'products:product_list' %}" class="text-accent font-medium text-sm">View All Products &rarr;</a>
+    </div>
+
+    {% if featured_products %}
+      <div class="grid grid--products">
+        {% for product in featured_products %}
+          {% include "products/_product_tile.html" %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <h3>No featured products yet</h3>
+        <p>Check back soon — new arrivals are added regularly.</p>
+      </div>
+    {% endif %}
+  </section>
+
+  {% if categories %}
+  <section class="section--tight">
+    <div class="row row--between" style="margin-bottom: var(--sp-5);">
+      <h2 class="display-md">Shop By Category</h2>
+      <a href="{% url 'products:product_list' %}" class="text-accent font-medium text-sm">Explore All &rarr;</a>
+    </div>
+    <div class="grid" style="grid-template-columns: repeat(4, 1fr);">
+      {% for category in categories %}
+        {% cycle "category-card--lavender" "category-card--blue" "category-card--green" "category-card--peach" as cat_color silent %}
+        <a href="{% url 'products:category_detail' slug=category.slug %}" class="category-card {{ cat_color }}">
+          <span class="category-card__icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="1.8"><path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
+          </span>
+          <p class="category-card__title">{{ category.name }}</p>
+          <p class="category-card__meta">{{ category.description|truncatewords:4|default:"Shop the collection" }}</p>
+          <span class="category-card__link">Shop Now &rarr;</span>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="section--tight">
+    <div class="promo-banner">
+      <span class="promo-banner__badge">Limited<br>Offer</span>
+      <div class="promo-banner__body">
+        <h3>Amazing Sound. Exclusive Deals.</h3>
+        <p>Grab up to 30% off on selected products.</p>
+      </div>
+      <a href="{% url 'products:product_list' %}" class="btn btn--primary">Shop Now</a>
+    </div>
+  </section>
+
+  <section class="section--tight" style="padding-top: 0;">
+    <div class="feature-row">
+      <div class="feature-item">
+        <span class="feature-item__icon feature-item__icon--lavender">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h13l4 4v6h-3M3 7v10h3M3 7l2-3h9l2 3"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="17.5" cy="17.5" r="1.5"/></svg>
+        </span>
+        <span>
+          <span class="feature-item__title" style="display:block;">Free Delivery</span>
+          <span class="feature-item__meta">Free delivery on orders above $50</span>
+        </span>
+      </div>
+      <div class="feature-item">
+        <span class="feature-item__icon feature-item__icon--green">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h12l2 5H4l2-5z"/><path d="M4 7h16v13H4z"/><path d="M9 11a3 3 0 0 0 6 0"/></svg>
+        </span>
+        <span>
+          <span class="feature-item__title" style="display:block;">Pick Up In Store</span>
+          <span class="feature-item__meta">Order online, pick up in store</span>
+        </span>
+      </div>
+      <div class="feature-item">
+        <span class="feature-item__icon feature-item__icon--peach">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg>
+        </span>
+        <span>
+          <span class="feature-item__title" style="display:block;">1 Year Warranty</span>
+          <span class="feature-item__meta">Enjoy 1 year warranty on all products</span>
+        </span>
+      </div>
+    </div>
+  </section>
+
+</div>
+{% endblock %}

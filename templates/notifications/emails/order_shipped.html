@@ -1,0 +1,9 @@
+{% extends "notifications/emails/_email_base.html" %}
+{% block email_title %}Order shipped{% endblock %}
+{% block email_body %}
+  <h2 style="margin:0 0 8px; font-size:22px;">Your order is on its way</h2>
+  <p style="color:#5b5f6a; margin:0 0 16px;">Hi {{ customer_name }}, order <strong>{{ order_number }}</strong> has shipped.</p>
+  {% if tracking_number %}
+    <p style="background:#ecebff; color:#2a27c4; padding:12px 16px; border-radius:8px; font-size:14px;">Tracking number: {{ tracking_number }}</p>
+  {% endif %}
+{% endblock %}

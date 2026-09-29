@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Order {{ order.order_number }} — Northfield{% endblock %}
+
+{% block content %}
+<div class="shell section--tight">
+  <div class="row row--between" style="margin-bottom: var(--sp-6);">
+    <div>
+      <h1 class="display-lg">{{ order.order_number }}</h1>
+      <p class="text-soft">Placed {{ order.created_at|date:"M j, Y" }}</p>
+    </div>
+    <span class="badge {% if order.status == 'delivered' %}badge--success{% elif order.status == 'cancelled' %}badge--danger{% else %}badge--accent{% endif %}">{{ order.get_status_display }}</span>
+  </div>
+
+  <div class="grid grid--split">
+    <div>
+      <div class="card" style="margin-bottom: var(--sp-4);">
+        <h3 class="display-sm" style="margin-bottom: var(--sp-3);">Items</h3>
+        {% for item in order.items.all %}
+          <div class="row row--between text-sm" style="margin-bottom: var(--sp-2);">
+            <span>{{ item.quantity }} &times; {{ item.product_name }}{% if item.variant_description %} ({{ item.variant_description }}){% endif %}</span>
+            <span class="font-medium">${{ item.line_total }}</span>
+          </div>
+        {% endfor %}
+        <hr class="divider">
+        <div class="summary-row"><span class="text-soft">Subtotal</span><span>${{ order.subtotal }}</span></div>
+        <div class="summary-row"><span class="text-soft">Shipping</span><span>${{ order.shipping_cost }}</span></div>
+        {% if order.discount_amount %}<div class="summary-row text-success"><span>Discount</span><span>-${{ order.discount_amount }}</span></div>{% endif %}
+        <div class="summary-row summary-row--total"><span>Total</span><span>${{ order.total }}</span></div>
+      </div>
+
+      <div class="card">
+        <h3 class="display-sm" style="margin-bottom: var(--sp-3);">Status history</h3>
+        {% for entry in order.status_history.all %}
+          <div class="row gap-3" style="margin-bottom: var(--sp-3);">
+            <span class="badge">{{ entry.get_status_display }}</span>
+            <span class="text-faint text-xs">{{ entry.created_at|date:"M j, Y g:i A" }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom: var(--sp-4);">
+        <h3 class="display-sm" style="margin-bottom: var(--sp-3);">Shipping address</h3>
+        <p class="text-sm">{{ order.shipping_full_name }}</p>
+        <p class="text-soft text-sm">{{ order.shipping_street_address }}{% if order.shipping_apartment %}, {{ order.shipping_apartment }}{% endif %}</p>
+        <p class="text-soft text-sm">{{ order.shipping_city }}, {{ order.shipping_state }} {{ order.shipping_postal_code }}</p>
+        <p class="text-soft text-sm">{{ order.shipping_country }}</p>
+      </div>
+
+      {% if order.can_be_cancelled %}
+        <a href="{% url 'orders:order_cancel' order_number=order.order_number %}" class="btn btn--outline btn--block text-danger">Cancel order</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Delete review — Northfield{% endblock %}
+
+{% block content %}
+<div class="shell section--tight" style="max-width: 460px;">
+  <div class="form-card form-card--wide">
+    <h1 class="display-sm" style="margin-bottom: var(--sp-3);">Delete this review?</h1>
+    <p class="text-soft" style="margin-bottom: var(--sp-5);">"{{ review.comment|truncatewords:20 }}"</p>
+    <form method="post">
+      {% csrf_token %}
+      <div class="row gap-3">
+        <button type="submit" class="btn btn--danger">Delete</button>
+        <a href="{% url 'products:product_detail' slug=review.product.slug %}" class="btn btn--ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

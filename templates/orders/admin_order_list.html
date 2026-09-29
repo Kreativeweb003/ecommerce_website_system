@@ -1,0 +1,30 @@
+{% extends "dashboard/_dash_base.html" %}
+
+{% block dash_title %}Orders{% endblock %}
+
+{% block dash_content %}
+  <div class="row gap-2" style="margin-bottom: var(--sp-5);">
+    <a href="{% url 'orders:admin_order_list' %}" class="btn {% if not status %}btn--outline{% else %}btn--ghost{% endif %} btn--sm">All</a>
+    {% for value, label in status_choices %}
+      <a href="?status={{ value }}" class="btn {% if status == value %}btn--outline{% else %}btn--ghost{% endif %} btn--sm">{{ label }}</a>
+    {% endfor %}
+  </div>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Order</th><th>Customer</th><th>Status</th><th>Total</th><th>Date</th><th></th></tr></thead>
+      <tbody>
+        {% for order in orders %}
+          <tr>
+            <td class="font-medium">{{ order.order_number }}</td>
+            <td>{{ order.user.email|default:order.email }}</td>
+            <td><span class="badge badge--accent">{{ order.get_status_display }}</span></td>
+            <td class="font-semibold">${{ order.total }}</td>
+            <td class="text-soft">{{ order.created_at|date:"M j, Y" }}</td>
+            <td><a href="{% url 'orders:admin_order_detail' order_number=order.order_number %}" class="btn btn--ghost btn--sm">Manage</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

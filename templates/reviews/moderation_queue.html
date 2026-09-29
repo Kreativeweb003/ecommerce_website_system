@@ -1,0 +1,27 @@
+{% extends "dashboard/_dash_base.html" %}
+
+{% block dash_title %}Review moderation{% endblock %}
+{% block dash_heading %}Pending reviews{% endblock %}
+
+{% block dash_content %}
+{% for review in reviews %}
+  <div class="card" style="margin-bottom: var(--sp-4);">
+    <div class="row row--between">
+      <div>
+        <span class="stars">{% for i in "12345" %}{% if forloop.counter <= review.rating %}&#9733;{% else %}&#9734;{% endif %}{% endfor %}</span>
+        <span class="text-faint text-sm" style="margin-left: var(--sp-2);">{{ review.product.name }} &middot; {{ review.user.email }}</span>
+      </div>
+      <span class="text-faint text-xs">{{ review.created_at|date:"M j, Y" }}</span>
+    </div>
+    {% if review.title %}<p class="font-semibold" style="margin-top: var(--sp-2);">{{ review.title }}</p>{% endif %}
+    <p class="text-soft" style="margin-top: var(--sp-1);">{{ review.comment }}</p>
+
+    <div class="row gap-2" style="margin-top: var(--sp-4);">
+      <a href="{% url 'reviews:review_moderate' pk=review.pk %}" class="btn btn--outline btn--sm">Review decision</a>
+      <a href="{% url 'reviews:review_reply' pk=review.pk %}" class="btn btn--ghost btn--sm">Reply</a>
+    </div>
+  </div>
+{% empty %}
+  <div class="empty-state"><h3>Nothing waiting on moderation</h3></div>
+{% endfor %}
+{% endblock %}

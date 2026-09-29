@@ -1,0 +1,50 @@
+{% extends "dashboard/_dash_base.html" %}
+
+{% block dash_title %}Inventory{% endblock %}
+{% block dash_heading %}Inventory{% endblock %}
+
+{% block dash_content %}
+
+<div class="card" style="margin-bottom: var(--sp-6);">
+  <h3 class="display-sm" style="margin-bottom: var(--sp-4);">Low stock ({{ low_stock_count }})</h3>
+  <div class="table-wrap" style="border: none;">
+    <table class="table">
+      <thead><tr><th>Item</th><th>Warehouse</th><th>Available</th><th>Threshold</th><th></th></tr></thead>
+      <tbody>
+        {% for item in low_stock_items %}
+          <tr>
+            <td class="font-medium">{{ item }}</td>
+            <td>{{ item.warehouse.name }}</td>
+            <td><span class="badge badge--danger">{{ item.available_quantity }}</span></td>
+            <td class="text-faint">{{ item.low_stock_threshold }}</td>
+            <td><a href="{% url 'inventory:stock_adjust' pk=item.pk %}" class="btn btn--ghost btn--sm">Adjust</a></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" class="text-faint">Nothing low on stock right now.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <h3 class="display-sm" style="margin-bottom: var(--sp-4);">Out of stock</h3>
+  <div class="table-wrap" style="border: none;">
+    <table class="table">
+      <thead><tr><th>Item</th><th>Warehouse</th><th></th></tr></thead>
+      <tbody>
+        {% for item in out_of_stock_products %}
+          <tr>
+            <td class="font-medium">{{ item }}</td>
+            <td>{{ item.warehouse.name }}</td>
+            <td><a href="{% url 'inventory:stock_adjust' pk=item.pk %}" class="btn btn--ghost btn--sm">Restock</a></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="3" class="text-faint">Nothing out of stock right now.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

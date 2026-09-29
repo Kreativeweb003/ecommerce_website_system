@@ -1,0 +1,20 @@
+{% extends "dashboard/_dash_base.html" %}
+
+{% block dash_title %}Customers{% endblock %}
+{% block dash_heading %}Customers{% endblock %}
+
+{% block dash_actions %}
+<div class="period-tabs">
+  <a href="?period=7d" class="{% if period == '7d' %}is-active{% endif %}">7d</a>
+  <a href="?period=30d" class="{% if period == '30d' %}is-active{% endif %}">30d</a>
+  <a href="?period=90d" class="{% if period == '90d' %}is-active{% endif %}">90d</a>
+  <a href="?period=1y" class="{% if period == '1y' %}is-active{% endif %}">1y</a>
+</div>
+{% endblock %}
+
+{% block dash_content %}
+<div class="grid" style="grid-template-columns: repeat(2, 1fr);">
+  <div class="stat-card"><p class="stat-card__label">New customers</p><p class="stat-card__value">{{ customer_summary.new_customers }}</p></div>
+  <div class="stat-card"><p class="stat-card__label">Repeat customers</p><p class="stat-card__value">{{ customer_summary.repeat_customers }}</p></div>
+</div>
+{% endblock %}

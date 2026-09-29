@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} product — Northfield{% endblock %}
+
+{% block content %}
+<div class="shell section--tight">
+  <h1 class="display-lg" style="margin-bottom: var(--sp-6);">{{ action }} product</h1>
+
+  <form method="post" enctype="multipart/form-data" class="form-card form-card--wide">
+    {% csrf_token %}
+    <div class="grid grid--2">
+      {% for field in form %}
+        <div class="field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<p class="field-hint">{{ field.help_text }}</p>{% endif %}
+          {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+
+    {% if not product %}
+      <div class="field">
+        <label for="images">Product images</label>
+        <input type="file" id="images" name="images" multiple accept="image/*">
+      </div>
+    {% endif %}
+
+    <div class="row gap-3" style="margin-top: var(--sp-4);">
+      <button type="submit" class="btn btn--primary btn--lg">{{ action }} product</button>
+      {% if product %}<a href="{% url 'products:product_detail' slug=product.slug %}" class="btn btn--ghost">Cancel</a>{% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Cancel order — Northfield{% endblock %}
+
+{% block content %}
+<div class="shell section--tight" style="max-width: 560px;">
+  <h1 class="display-lg" style="margin-bottom: var(--sp-2);">Cancel order {{ order.order_number }}?</h1>
+  <p class="text-soft" style="margin-bottom: var(--sp-6);">If this order was already paid, any reserved or deducted stock will be released and a refund process can be started separately.</p>
+
+  <form method="post" class="form-card form-card--wide">
+    {% csrf_token %}
+    <div class="field">
+      <label for="{{ form.reason.id_for_label }}">Reason (optional)</label>
+      {{ form.reason }}
+    </div>
+    <div class="row gap-3">
+      <button type="submit" class="btn btn--danger">Confirm cancellation</button>
+      <a href="{% url 'orders:order_detail' order_number=order.order_number %}" class="btn btn--ghost">Go back</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

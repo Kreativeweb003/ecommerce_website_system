@@ -1,0 +1,48 @@
+{% extends "dashboard/_dash_base.html" %}
+
+{% block dash_title %}Shipping{% endblock %}
+{% block dash_heading %}Shipping zones{% endblock %}
+
+{% block dash_actions %}
+<a href="{% url 'shipping:zone_create' %}" class="btn btn--primary btn--sm">Add zone</a>
+{% endblock %}
+
+{% block dash_content %}
+{% for zone in zones %}
+  <div class="card" style="margin-bottom: var(--sp-4);">
+    <div class="row row--between" style="margin-bottom: var(--sp-3);">
+      <div>
+        <h3 class="display-sm">{{ zone.name }}</h3>
+        <p class="text-faint text-sm">{{ zone.countries|join:", " }}</p>
+      </div>
+      <a href="{% url 'shipping:zone_update' pk=zone.pk %}" class="btn btn--ghost btn--sm">Edit zone</a>
+    </div>
+
+    <div class="table-wrap" style="border: none;">
+      <table class="table">
+        <thead><tr><th>Method</th><th>Rate type</th><th>Cost</th><th>Delivery</th></tr></thead>
+        <tbody>
+          {% for method in zone.methods.all %}
+            <tr>
+              <td class="font-medium">{{ method.name }}</td>
+              <td>{{ method.get_rate_type_display }}</td>
+              <td>
+                {% if method.rate_type == "flat" %}${{ method.flat_rate }}
+                {% elif method.rate_type == "weight_based" %}${{ method.base_rate }} + ${{ method.rate_per_kg }}/kg
+                {% else %}Free{% endif %}
+              </td>
+              <td class="text-soft">{{ method.estimated_delivery_label }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4" class="text-faint">No methods yet for this zone.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% empty %}
+  <div class="empty-state"><h3>No shipping zones yet</h3></div>
+{% endfor %}
+
+<a href="{% url 'shipping:method_create' %}" class="btn btn--outline">Add shipping method</a>
+{% endblock %}

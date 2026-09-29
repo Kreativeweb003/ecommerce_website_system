@@ -1,0 +1,23 @@
+{% extends "dashboard/_dash_base.html" %}
+
+{% block dash_title %}Moderate review{% endblock %}
+{% block dash_heading %}Moderate review{% endblock %}
+
+{% block dash_content %}
+<div class="card" style="margin-bottom: var(--sp-4); max-width: 560px;">
+  <p class="text-soft">{{ review.comment }}</p>
+</div>
+
+<form method="post" class="form-card">
+  {% csrf_token %}
+  <div class="field">
+    <label>Decision</label>
+    {{ form.status }}
+  </div>
+  <div class="field">
+    <label>Note (optional)</label>
+    {{ form.moderation_note }}
+  </div>
+  <button type="submit" class="btn btn--primary btn--block">Submit decision</button>
+</form>
+{% endblock %}

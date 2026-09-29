@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Checkout — Northfield{% endblock %}
+
+{% block content %}
+<div class="shell section--tight">
+
+  <div class="checkout-steps">
+    <div class="checkout-step is-active"><span class="checkout-step__num">1</span> Shipping</div>
+    <div class="checkout-step"><span class="checkout-step__num">2</span> Payment</div>
+    <div class="checkout-step"><span class="checkout-step__num">3</span> Confirmation</div>
+  </div>
+
+  <div class="grid grid--split">
+    <form method="post" id="checkout-form">
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="alert alert--error">{{ form.non_field_errors.0 }}</div>{% endif %}
+
+      <h3 class="display-sm" style="margin-bottom: var(--sp-4);">Contact</h3>
+      <div class="grid grid--2">
+        <div class="field"><label>{{ form.email.label }}</label>{{ form.email }}</div>
+        <div class="field"><label>{{ form.phone_number.label }}</label>{{ form.phone_number }}</div>
+      </div>
+
+      <h3 class="display-sm" style="margin: var(--sp-5) 0 var(--sp-4);">Shipping address</h3>
+      <div class="field"><label>{{ form.shipping_full_name.label }}</label>{{ form.shipping_full_name }}</div>
+      <div class="field"><label>{{ form.shipping_street_address.label }}</label>{{ form.shipping_street_address }}</div>
+      <div class="field"><label>{{ form.shipping_apartment.label }}</label>{{ form.shipping_apartment }}</div>
+      <div class="grid grid--2">
+        <div class="field"><label>{{ form.shipping_city.label }}</label>{{ form.shipping_city }}</div>
+        <div class="field"><label>{{ form.shipping_state.label }}</label>{{ form.shipping_state }}</div>
+      </div>
+      <div class="grid grid--2">
+        <div class="field"><label>{{ form.shipping_postal_code.label }}</label>{{ form.shipping_postal_code }}</div>
+        <div class="field">
+          <label>{{ form.shipping_country.label }}</label>
+          {{ form.shipping_country }}
+        </div>
+      </div>
+
+      <h3 class="display-sm" style="margin: var(--sp-5) 0 var(--sp-4);">Shipping method</h3>
+      <div id="shipping-methods" class="stack gap-2">
+        <p class="text-faint text-sm">Enter your country above to see available shipping methods.</p>
+      </div>
+      {{ form.shipping_method_id }}
+
+      <div class="field--checkbox" style="margin: var(--sp-5) 0;">
+        {{ form.billing_same_as_shipping }}
+        <label for="{{ form.billing_same_as_shipping.id_for_label }}">Billing address same as shipping</label>
+      </div>
+
+      <div class="field">
+        <label>{{ form.coupon_code.label }}</label>
+        {{ form.coupon_code }}
+      </div>
+      <div class="field">
+        <label>{{ form.customer_note.label }}</label>
+        {{ form.customer_note }}
+      </div>
+
+      <button type="submit" class="btn btn--primary btn--lg btn--block">Place order</button>
+    </form>
+
+    <div class="card">
+      <h3 class="display-sm" style="margin-bottom: var(--sp-4);">Order summary</h3>
+      {% for item in items %}
+        <div class="row row--between text-sm" style="margin-bottom: var(--sp-2);">
+          <span>{{ item.quantity }} &times; {{ item.product.name }}</span>
+          <span class="font-medium">${{ item.total_price }}</span>
+        </div>
+      {% endfor %}
+      <hr class="divider">
+      <div class="summary-row"><span class="text-soft">Subtotal</span><span>${{ subtotal }}</span></div>
+      {% if discount_amount %}<div class="summary-row text-success"><span>Discount</span><span>-${{ discount_amount }}</span></div>{% endif %}
+      <div class="summary-row summary-row--total"><span>Total</span><span>${{ total }}</span></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const countryInput = document.querySelector("#id_shipping_country");
+  const methodsContainer = document.querySelector("#shipping-methods");
+  const hiddenMethodField = document.querySelector("#id_shipping_method_id");
+
+  async function loadShippingOptions() {
+    const country = countryInput.value.trim();
+    if (!country) return;
+
+    const response = await fetch(`/shipping/options/?country=${encodeURIComponent(country)}`, {
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+    });
+    const data = await response.json();
+
+    if (!data.methods.length) {
+      methodsContainer.innerHTML = '<p class="text-faint text-sm">No shipping methods available for this destination.</p>';
+      return;
+    }
+
+    methodsContainer.innerHTML = data.methods.map((method, index) => `
+      <label class="card row row--between" style="cursor:pointer;">
+        <span class="row gap-3">
+          <input type="radio" name="shipping_method_choice" value="${method.id}" ${index === 0 ? "checked" : ""}>
+          <span>
+            <span class="font-medium">${method.name}</span><br>
+            <span class="text-faint text-xs">${method.estimated_delivery}</span>
+          </span>
+        </span>
+        <span class="font-semibold">$${method.cost}</span>
+      </label>
+    `).join("");
+
+    hiddenMethodField.value = data.methods[0].id;
+    methodsContainer.querySelectorAll('input[name="shipping_method_choice"]').forEach((radio) => {
+      radio.addEventListener("change", () => { hiddenMethodField.value = radio.value; });
+    });
+  }
+
+  countryInput.addEventListener("blur", loadShippingOptions);
+});
+</script>
+{% endblock %}

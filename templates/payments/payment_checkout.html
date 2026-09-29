@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Payment — Northfield{% endblock %}
+
+{% block content %}
+<div class="shell section--tight" style="max-width: 560px;">
+
+  <div class="checkout-steps">
+    <div class="checkout-step"><span class="checkout-step__num">&#10003;</span> Shipping</div>
+    <div class="checkout-step is-active"><span class="checkout-step__num">2</span> Payment</div>
+    <div class="checkout-step"><span class="checkout-step__num">3</span> Confirmation</div>
+  </div>
+
+  <div class="card">
+    <h3 class="display-sm" style="margin-bottom: var(--sp-2);">Order {{ order.order_number }}</h3>
+    <p class="text-soft" style="margin-bottom: var(--sp-5);">Amount due: <span class="font-semibold text-accent">${{ order.total }}</span></p>
+
+    <div id="payment-element">
+      <!-- Replace with your gateway's embedded payment form (Stripe Elements / Paystack inline), using client_secret_or_redirect_url below. -->
+      <p class="text-faint text-sm">Gateway reference: {{ transaction.gateway_reference }}</p>
+    </div>
+
+    <a href="{{ client_secret_or_redirect_url }}" class="btn btn--primary btn--block btn--lg" style="margin-top: var(--sp-5);">Continue to payment</a>
+  </div>
+
+  <p class="text-faint text-xs" style="margin-top: var(--sp-4); text-align: center;">
+    Your payment is processed securely by {{ transaction.gateway|title }}. Northfield never sees your card details.
+  </p>
+</div>
+{% endblock %}

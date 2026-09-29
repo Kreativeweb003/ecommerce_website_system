@@ -1,0 +1,9 @@
+{% extends "notifications/emails/_email_base.html" %}
+{% block email_title %}Low stock alert{% endblock %}
+{% block email_body %}
+  <h2 style="margin:0 0 8px; font-size:22px;">Low stock: {{ item_label }}</h2>
+  <p style="color:#5b5f6a; margin:0 0 16px;">Warehouse: {{ warehouse }}</p>
+  <p style="background:#fdece3; color:#e8622c; padding:12px 16px; border-radius:8px; font-size:14px;">
+    {{ available_quantity }} left (threshold: {{ threshold }})
+  </p>
+{% endblock %}

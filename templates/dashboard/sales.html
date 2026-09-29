@@ -1,0 +1,53 @@
+{% extends "dashboard/_dash_base.html" %}
+
+{% block dash_title %}Sales{% endblock %}
+{% block dash_heading %}Sales{% endblock %}
+
+{% block dash_actions %}
+<div class="period-tabs">
+  <a href="?period=7d" class="{% if period == '7d' %}is-active{% endif %}">7d</a>
+  <a href="?period=30d" class="{% if period == '30d' %}is-active{% endif %}">30d</a>
+  <a href="?period=90d" class="{% if period == '90d' %}is-active{% endif %}">90d</a>
+  <a href="?period=1y" class="{% if period == '1y' %}is-active{% endif %}">1y</a>
+</div>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: var(--sp-6);">
+  <div class="stat-card"><p class="stat-card__label">Revenue</p><p class="stat-card__value">${{ sales_summary.total_revenue }}</p></div>
+  <div class="stat-card"><p class="stat-card__label">Orders</p><p class="stat-card__value">{{ sales_summary.total_orders }}</p></div>
+  <div class="stat-card"><p class="stat-card__label">Avg. order value</p><p class="stat-card__value">${{ sales_summary.average_order_value }}</p></div>
+</div>
+
+<div class="grid grid--split">
+  <div class="card">
+    <h3 class="display-sm" style="margin-bottom: var(--sp-4);">Order status breakdown</h3>
+    {% for row in order_status_breakdown %}
+      <div class="row row--between text-sm" style="margin-bottom: var(--sp-2);">
+        <span>{{ row.status|capfirst }}</span>
+        <span class="font-medium">{{ row.count }}</span>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="card">
+    <h3 class="display-sm" style="margin-bottom: var(--sp-4);">Top selling products</h3>
+    <div class="table-wrap" style="border: none;">
+      <table class="table">
+        <thead><tr><th>Product</th><th>Sold</th><th>Revenue</th></tr></thead>
+        <tbody>
+          {% for product in top_selling_products %}
+            <tr>
+              <td>{{ product.product__name }}</td>
+              <td>{{ product.total_quantity_sold }}</td>
+              <td class="font-semibold">${{ product.total_revenue }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

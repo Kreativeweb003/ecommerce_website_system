@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} address — Northfield{% endblock %}
+
+{% block content %}
+<div class="shell section--tight" style="max-width: 560px;">
+  <h1 class="display-lg" style="margin-bottom: var(--sp-6);">{{ action }} address</h1>
+
+  <form method="post" class="form-card form-card--wide">
+    {% csrf_token %}
+    <div class="grid grid--2">
+      {% for field in form %}
+        <div class="field {% if field.name == 'is_default' %}field--checkbox{% endif %}">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+    <button type="submit" class="btn btn--primary btn--block">Save address</button>
+  </form>
+</div>
+{% endblock %}

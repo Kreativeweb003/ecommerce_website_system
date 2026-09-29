@@ -1,0 +1,21 @@
+{% extends "dashboard/_dash_base.html" %}
+
+{% block dash_title %}{{ action }} coupon{% endblock %}
+{% block dash_heading %}{{ action }} coupon{% endblock %}
+
+{% block dash_content %}
+<form method="post" class="form-card form-card--wide">
+  {% csrf_token %}
+  <div class="grid grid--2">
+    {% for field in form %}
+      <div class="field {% if field.name == 'is_active' %}field--checkbox{% endif %}">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<p class="field-hint">{{ field.help_text }}</p>{% endif %}
+        {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+      </div>
+    {% endfor %}
+  </div>
+  <button type="submit" class="btn btn--primary">Save coupon</button>
+</form>
+{% endblock %}

@@ -1,0 +1,8 @@
+{% extends "notifications/emails/_email_base.html" %}
+{% block email_title %}Payment issue{% endblock %}
+{% block email_body %}
+  <h2 style="margin:0 0 8px; font-size:22px;">There was an issue with your payment</h2>
+  <p style="color:#5b5f6a; margin:0 0 16px;">Hi {{ customer_name }}, we couldn't process payment for order <strong>{{ order_number }}</strong>.</p>
+  {% if reason %}<p style="background:#fbeae7; color:#d6432e; padding:12px 16px; border-radius:8px; font-size:14px;">{{ reason }}</p>{% endif %}
+  <p style="color:#5b5f6a; margin-top:16px;">You can retry payment from your order page — the items in your order are being held for a short window.</p>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends "dashboard/_dash_base.html" %}
+
+{% block dash_title %}Order {{ order.order_number }}{% endblock %}
+{% block dash_heading %}{{ order.order_number }}{% endblock %}
+
+{% block dash_actions %}
+<span class="badge badge--accent">{{ order.get_status_display }}</span>
+{% endblock %}
+
+{% block dash_content %}
+<div class="grid grid--split">
+  <div>
+    <div class="card" style="margin-bottom: var(--sp-4);">
+      <h3 class="display-sm" style="margin-bottom: var(--sp-3);">Items</h3>
+      {% for item in order.items.all %}
+        <div class="row row--between text-sm" style="margin-bottom: var(--sp-2);">
+          <span>{{ item.quantity }} &times; {{ item.product_name }}{% if item.variant_description %} ({{ item.variant_description }}){% endif %}</span>
+          <span class="font-medium">${{ item.line_total }}</span>
+        </div>
+      {% endfor %}
+      <hr class="divider">
+      <div class="summary-row"><span class="text-soft">Subtotal</span><span>${{ order.subtotal }}</span></div>
+      <div class="summary-row"><span class="text-soft">Shipping</span><span>${{ order.shipping_cost }}</span></div>
+      {% if order.discount_amount %}<div class="summary-row text-success"><span>Discount</span><span>-${{ order.discount_amount }}</span></div>{% endif %}
+      <div class="summary-row summary-row--total"><span>Total</span><span>${{ order.total }}</span></div>
+    </div>
+
+    <div class="card">
+      <h3 class="display-sm" style="margin-bottom: var(--sp-3);">Status history</h3>
+      {% for entry in order.status_history.all %}
+        <div class="row gap-3" style="margin-bottom: var(--sp-3);">
+          <span class="badge">{{ entry.get_status_display }}</span>
+          <span class="text-faint text-xs">{{ entry.created_at|date:"M j, Y g:i A" }}</span>
+          {% if entry.note %}<span class="text-soft text-xs">{{ entry.note }}</span>{% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div>
+    <div class="card" style="margin-bottom: var(--sp-4);">
+      <h3 class="display-sm" style="margin-bottom: var(--sp-3);">Customer</h3>
+      <p class="text-sm">{{ order.shipping_full_name }}</p>
+      <p class="text-soft text-sm">{{ order.email }} &middot; {{ order.phone_number }}</p>
+      <hr class="divider">
+      <p class="text-soft text-sm">{{ order.shipping_street_address }}{% if order.shipping_apartment %}, {{ order.shipping_apartment }}{% endif %}</p>
+      <p class="text-soft text-sm">{{ order.shipping_city }}, {{ order.shipping_state }} {{ order.shipping_postal_code }}</p>
+      <p class="text-soft text-sm">{{ order.shipping_country }}</p>
+    </div>
+
+    <div class="card">
+      <h3 class="display-sm" style="margin-bottom: var(--sp-3);">Update status</h3>
+      <form method="post">
+        {% csrf_token %}
+        <div class="field">
+          <label>{{ form.status.label }}</label>
+          {{ form.status }}
+        </div>
+        <div class="field">
+          <label>{{ form.note.label }}</label>
+          {{ form.note }}
+        </div>
+        <button type="submit" class="btn btn--primary btn--block">Update order</button>
+      </form>
+
+      <a href="{% url 'payments:refund_initiate' order_number=order.order_number %}" class="btn btn--outline btn--block" style="margin-top: var(--sp-3);">Issue refund</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

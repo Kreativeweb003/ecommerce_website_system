@@ -1,0 +1,44 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block dash_title %}Dashboard{% endblock %} — Northfield Admin</title>
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+<body>
+  <div class="dash-shell">
+    <aside class="dash-sidebar">
+      <div class="dash-sidebar__logo">Northfield</div>
+      <nav class="dash-nav">
+        <a href="{% url 'dashboard:home' %}" class="{% if request.resolver_match.url_name == 'home' %}is-active{% endif %}">Overview</a>
+        <a href="{% url 'products:admin_product_list' %}" class="{% if request.resolver_match.url_name == 'admin_product_list' %}is-active{% endif %}">Products</a>
+        <a href="{% url 'dashboard:sales' %}" class="{% if request.resolver_match.url_name == 'sales' %}is-active{% endif %}">Sales</a>
+        <a href="{% url 'orders:admin_order_list' %}" class="{% if 'order' in request.resolver_match.url_name %}is-active{% endif %}">Orders</a>
+        <a href="{% url 'dashboard:inventory' %}" class="{% if request.resolver_match.url_name == 'inventory' %}is-active{% endif %}">Inventory</a>
+        <a href="{% url 'dashboard:payments' %}" class="{% if request.resolver_match.url_name == 'payments' %}is-active{% endif %}">Payments</a>
+        <a href="{% url 'dashboard:customers' %}" class="{% if request.resolver_match.url_name == 'customers' %}is-active{% endif %}">Customers</a>
+        <a href="{% url 'reviews:moderation_queue' %}">Reviews</a>
+        <a href="{% url 'coupons:coupon_list' %}">Coupons</a>
+        <a href="{% url 'shipping:zone_list' %}">Shipping</a>
+        <hr class="divider">
+        <a href="{% url 'products:home' %}">View store &rarr;</a>
+      </nav>
+    </aside>
+
+    <main class="dash-main">
+      <div class="row row--between" style="margin-bottom: var(--sp-5);">
+        <h1 class="display-md">{% block dash_heading %}{% endblock %}</h1>
+        {% block dash_actions %}{% endblock %}
+      </div>
+
+      {% include "partials/messages.html" %}
+
+      {% block dash_content %}{% endblock %}
+    </main>
+  </div>
+
+  <script src="{% static 'js/main.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

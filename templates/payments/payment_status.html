@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Payment status — Northfield{% endblock %}
+
+{% block content %}
+<div class="shell section" style="max-width: 560px; text-align: center;">
+  {% if transaction.status == "succeeded" %}
+    <div class="badge badge--success" style="margin-bottom: var(--sp-4);">Payment confirmed</div>
+    <h1 class="display-lg" style="margin-bottom: var(--sp-4);">You're all set</h1>
+  {% elif transaction.status == "failed" %}
+    <div class="badge badge--danger" style="margin-bottom: var(--sp-4);">Payment failed</div>
+    <h1 class="display-lg" style="margin-bottom: var(--sp-4);">Something went wrong</h1>
+  {% else %}
+    <div class="badge badge--accent" style="margin-bottom: var(--sp-4);">Processing</div>
+    <h1 class="display-lg" style="margin-bottom: var(--sp-4);">We're confirming your payment</h1>
+  {% endif %}
+
+  <p class="text-soft" style="margin-bottom: var(--sp-6);">Order {{ order.order_number }} &middot; ${{ order.total }}</p>
+
+  <div class="row gap-3" style="justify-content: center;">
+    <a href="{% url 'orders:order_detail' order_number=order.order_number %}" class="btn btn--primary">View order</a>
+    {% if transaction.status == "failed" %}
+      <a href="{% url 'payments:payment_initiate' order_number=order.order_number %}" class="btn btn--outline">Try again</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

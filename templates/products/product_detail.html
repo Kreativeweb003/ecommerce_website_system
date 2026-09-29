@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% load static %}
+{% load cloudinary_extras %}
+
+{% block title %}{{ product.name }} — Northfield{% endblock %}
+
+{% block content %}
+<div class="shell section--tight">
+
+  <div class="breadcrumb">
+    <a href="{% url 'products:home' %}">Home</a> /
+    {% if product.category %}<a href="{% url 'products:category_detail' slug=product.category.slug %}">{{ product.category.name }}</a> /{% endif %}
+    {{ product.name }}
+  </div>
+
+  <div class="grid grid--split">
+
+    <div>
+      <div class="product-tile__image" style="margin-bottom: var(--sp-3);">
+        {% with images.first as first_image %}
+          {% if first_image %}<img src="{{ first_image.image|optimized }}" alt="{{ product.name }}">{% endif %}
+        {% endwith %}
+      </div>
+      {% if images|length > 1 %}
+        <div class="row gap-2">
+          {% for image in images %}
+            <div style="width: 72px; height: 72px; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--line);">
+              <img src="{{ image.image|optimized:'q_auto,f_auto,w_140,h_140,c_fill' }}" alt="{{ image.alt_text }}">
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <div>
+      {% if product.brand %}<p class="text-soft text-sm font-medium">{{ product.brand.name }}</p>{% endif %}
+      <h1 class="display-lg" style="margin: var(--sp-2) 0;">{{ product.name }}</h1>
+
+      {% if rating_summary.total_reviews %}
+        <div class="row gap-2" style="margin-bottom: var(--sp-4);">
+          <span class="stars">{% for i in "12345" %}{% if forloop.counter <= rating_summary.average_rating %}&#9733;{% else %}&#9734;{% endif %}{% endfor %}</span>
+          <span class="text-soft text-sm">{{ rating_summary.average_rating }} &middot; {{ rating_summary.total_reviews }} review{{ rating_summary.total_reviews|pluralize }}</span>
+        </div>
+      {% endif %}
+
+      <p style="margin-bottom: var(--sp-5);">
+        <span class="price display-sm {% if product.is_on_sale %}price--sale{% endif %}">${{ product.current_price }}</span>
+        {% if product.is_on_sale %}<span class="price--was">${{ product.base_price }}</span>{% endif %}
+      </p>
+
+      <p class="text-soft" style="margin-bottom: var(--sp-5);">{{ product.short_description|default:product.description|truncatewords:40 }}</p>
+
+      <form action="{% url 'cart:add_to_cart' %}" method="post" class="js-add-to-cart-form">
+        {% csrf_token %}
+        <input type="hidden" name="product_id" value="{{ product.id }}">
+        <input type="hidden" name="next" value="{{ request.path }}">
+
+        {% if variants %}
+          <div class="field">
+            <label for="variant_id">Options</label>
+            <select name="variant_id" id="variant_id">
+              {% for variant in variants %}
+                <option value="{{ variant.id }}">
+                  {% for av in variant.attribute_values.all %}{{ av.value }} {% endfor %}
+                  &mdash; ${{ variant.price }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+        {% endif %}
+
+        <div class="row gap-3" style="margin-bottom: var(--sp-4);">
+          <div class="qty-stepper">
+            <button type="button" onclick="this.nextElementSibling.stepDown()">&minus;</button>
+            <input type="number" name="quantity" value="1" min="1">
+            <button type="button" onclick="this.previousElementSibling.stepUp()">+</button>
+          </div>
+          <button type="submit" class="btn btn--primary btn--lg" style="flex: 1;">Add to cart</button>
+        </div>
+      </form>
+
+      <button class="btn btn--outline btn--block js-wishlist-add" data-product-id="{{ product.id }}">
+        Save to wishlist
+      </button>
+
+      <hr class="divider">
+
+      <div class="stack gap-2 text-sm text-soft">
+        <p>SKU: {{ product.sku }}</p>
+        {% if product.weight_kg %}<p>Weight: {{ product.weight_kg }}kg</p>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="grid grid--split">
+    <div>
+      <h3 class="display-sm" style="margin-bottom: var(--sp-3);">Description</h3>
+      <p class="text-soft">{{ product.description|linebreaks }}</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <section id="reviews">
+    <div class="row row--between" style="margin-bottom: var(--sp-5);">
+      <h2 class="display-md">Reviews</h2>
+      {% if user.is_authenticated %}
+        {% if user_review %}
+          <a href="{% url 'reviews:review_update' pk=user_review.pk %}" class="btn btn--outline">Edit your review</a>
+        {% else %}
+          <a href="{% url 'reviews:review_create' product_slug=product.slug %}" class="btn btn--primary">Write a review</a>
+        {% endif %}
+      {% endif %}
+    </div>
+
+    {% if rating_summary.total_reviews %}
+      <div class="grid grid--split" style="margin-bottom: var(--sp-6);">
+        <div class="row gap-5" style="align-items: center;">
+          <div>
+            <div class="display-lg">{{ rating_summary.average_rating }}</div>
+            <span class="stars">{% for i in "12345" %}{% if forloop.counter <= rating_summary.average_rating %}&#9733;{% else %}&#9734;{% endif %}{% endfor %}</span>
+            <p class="text-soft text-sm">{{ rating_summary.total_reviews }} review{{ rating_summary.total_reviews|pluralize }}</p>
+          </div>
+          <div style="flex: 1;">
+            {% for star, count in rating_summary.rating_breakdown.items %}
+              <div class="rating-bar-row">
+                <span>{{ star }} star</span>
+                <div class="rating-bar"><span style="width: {% widthratio count rating_summary.total_reviews 100 %}%;"></span></div>
+                <span class="text-faint">{{ count }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    {% for review in reviews %}
+      <div class="review">
+        <div class="row row--between">
+          <div>
+            <span class="stars">{% for i in "12345" %}{% if forloop.counter <= review.rating %}&#9733;{% else %}&#9734;{% endif %}{% endfor %}</span>
+            {% if review.is_verified_purchase %}<span class="badge badge--success" style="margin-left: var(--sp-2);">Verified purchase</span>{% endif %}
+          </div>
+          <span class="text-faint text-xs">{{ review.created_at|date:"M j, Y" }}</span>
+        </div>
+        {% if review.title %}<p class="font-semibold" style="margin-top: var(--sp-2);">{{ review.title }}</p>{% endif %}
+        <p class="text-soft" style="margin-top: var(--sp-1);">{{ review.comment }}</p>
+        <p class="text-faint text-xs" style="margin-top: var(--sp-2);">{{ review.user.get_full_name }}</p>
+
+        {% if review.reply %}
+          <div class="card" style="margin-top: var(--sp-3); background: var(--bg-subtle);">
+            <p class="text-xs font-semibold" style="margin-bottom: var(--sp-1);">Response from Northfield</p>
+            <p class="text-soft text-sm">{{ review.reply.message }}</p>
+          </div>
+        {% endif %}
+
+        <div class="row gap-2" style="margin-top: var(--sp-3);">
+          <button class="btn btn--ghost btn--sm js-review-vote" data-review-id="{{ review.pk }}" data-vote="helpful">
+            Helpful ({{ review.helpful_count }})
+          </button>
+          <button class="btn btn--ghost btn--sm js-review-vote" data-review-id="{{ review.pk }}" data-vote="not_helpful">
+            Not helpful ({{ review.not_helpful_count }})
+          </button>
+        </div>
+      </div>
+    {% empty %}
+      <div class="empty-state">
+        <h3>No reviews yet</h3>
+        <p>Be the first to share what you think of this product.</p>
+      </div>
+    {% endfor %}
+  </section>
+
+  {% if related_products %}
+    <hr class="divider">
+    <section>
+      <h2 class="display-md" style="margin-bottom: var(--sp-5);">You may also like</h2>
+      <div class="grid grid--products">
+        {% for product in related_products %}
+          {% include "products/_product_tile.html" %}
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/cart.js' %}"></script>
+<script src="{% static 'js/wishlist.js' %}"></script>
+<script src="{% static 'js/reviews.js' %}"></script>
+{% endblock %}

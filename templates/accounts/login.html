@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Log in — Northfield{% endblock %}
+
+{% block content %}
+<div class="shell" style="max-width: 460px; padding-top: var(--sp-8); padding-bottom: var(--sp-8);">
+  <h1 class="display-lg" style="margin-bottom: var(--sp-2);">Welcome back</h1>
+  <p class="text-soft" style="margin-bottom: var(--sp-6);">Log in to view your orders and saved items.</p>
+
+  <form method="post" class="form-card form-card--wide">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="alert alert--error">{{ form.non_field_errors.0 }}</div>{% endif %}
+    {% for field in form %}
+      <div class="field">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+      </div>
+    {% endfor %}
+    <button type="submit" class="btn btn--primary btn--block btn--lg">Log in</button>
+  </form>
+
+  <p class="text-soft text-sm" style="margin-top: var(--sp-4);">
+    New here? <a href="{% url 'accounts:register' %}" class="text-accent font-medium">Create an account</a>
+  </p>
+</div>
+{% endblock %}

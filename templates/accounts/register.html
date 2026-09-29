@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Create an account — Northfield{% endblock %}
+
+{% block content %}
+<div class="shell" style="max-width: 460px; padding-top: var(--sp-8); padding-bottom: var(--sp-8);">
+  <h1 class="display-lg" style="margin-bottom: var(--sp-2);">Create an account</h1>
+  <p class="text-soft" style="margin-bottom: var(--sp-6);">Track orders, save items, and check out faster.</p>
+
+  <form method="post" class="form-card form-card--wide">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="alert alert--error">{{ form.non_field_errors.0 }}</div>{% endif %}
+    <div class="grid grid--2">
+      {% for field in form %}
+        <div class="field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+    <button type="submit" class="btn btn--primary btn--block btn--lg">Create account</button>
+  </form>
+
+  <p class="text-soft text-sm" style="margin-top: var(--sp-4);">
+    Already have an account? <a href="{% url 'accounts:login' %}" class="text-accent font-medium">Log in</a>
+  </p>
+</div>
+{% endblock %}

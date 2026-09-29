@@ -1,0 +1,34 @@
+<footer class="site-footer">
+  <div class="shell">
+    <div class="footer-grid">
+      <div>
+        <div class="logo" style="margin-bottom: var(--sp-3);">Northfield</div>
+        <p class="text-soft text-sm" style="max-width: 320px;">
+          Considered goods for everyday use. Designed to last, shipped with care.
+        </p>
+      </div>
+      <div>
+        <h4>Shop</h4>
+        <a href="{% url 'products:product_list' %}">All products</a>
+        <a href="{% url 'products:product_list' %}?sort=newest">New arrivals</a>
+        <a href="{% url 'wishlist:wishlist_detail' %}">Wishlist</a>
+      </div>
+      <div>
+        <h4>Account</h4>
+        <a href="{% url 'orders:order_list' %}">Order history</a>
+        <a href="{% url 'accounts:profile' %}">Profile</a>
+        <a href="{% url 'accounts:address_list' %}">Addresses</a>
+      </div>
+      <div>
+        <h4>Support</h4>
+        <a href="#">Shipping &amp; returns</a>
+        <a href="#">Contact us</a>
+        <a href="#">FAQ</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; {% now "Y" %} Northfield. All rights reserved.</span>
+      <span>Secure checkout &middot; Free returns within 30 days</span>
+    </div>
+  </div>
+</footer>

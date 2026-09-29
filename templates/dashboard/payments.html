@@ -1,0 +1,22 @@
+{% extends "dashboard/_dash_base.html" %}
+
+{% block dash_title %}Payments{% endblock %}
+{% block dash_heading %}Payments{% endblock %}
+
+{% block dash_actions %}
+<div class="period-tabs">
+  <a href="?period=7d" class="{% if period == '7d' %}is-active{% endif %}">7d</a>
+  <a href="?period=30d" class="{% if period == '30d' %}is-active{% endif %}">30d</a>
+  <a href="?period=90d" class="{% if period == '90d' %}is-active{% endif %}">90d</a>
+  <a href="?period=1y" class="{% if period == '1y' %}is-active{% endif %}">1y</a>
+</div>
+{% endblock %}
+
+{% block dash_content %}
+<div class="grid" style="grid-template-columns: repeat(4, 1fr);">
+  <div class="stat-card"><p class="stat-card__label">Succeeded</p><p class="stat-card__value text-success">{{ payment_summary.succeeded }}</p></div>
+  <div class="stat-card"><p class="stat-card__label">Failed</p><p class="stat-card__value text-danger">{{ payment_summary.failed }}</p></div>
+  <div class="stat-card"><p class="stat-card__label">Pending</p><p class="stat-card__value">{{ payment_summary.pending }}</p></div>
+  <div class="stat-card"><p class="stat-card__label">Refunded</p><p class="stat-card__value">${{ payment_summary.total_refunded }}</p></div>
+</div>
+{% endblock %}

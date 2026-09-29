@@ -1,0 +1,19 @@
+{% extends "dashboard/_dash_base.html" %}
+
+{% block dash_title %}Reply to review{% endblock %}
+{% block dash_heading %}Reply to review{% endblock %}
+
+{% block dash_content %}
+<div class="card" style="margin-bottom: var(--sp-4); max-width: 560px;">
+  <p class="text-soft">{{ review.comment }}</p>
+</div>
+
+<form method="post" class="form-card">
+  {% csrf_token %}
+  <div class="field">
+    <label for="{{ form.message.id_for_label }}">Your response</label>
+    {{ form.message }}
+  </div>
+  <button type="submit" class="btn btn--primary btn--block">Post reply</button>
+</form>
+{% endblock %}

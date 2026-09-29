@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}{{ action }} review — {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="shell section--tight" style="max-width: 560px;">
+  <h1 class="display-lg" style="margin-bottom: var(--sp-2);">{{ action }} a review</h1>
+  <p class="text-soft" style="margin-bottom: var(--sp-6);">For {{ product.name }}</p>
+
+  <form method="post" class="form-card form-card--wide">
+    {% csrf_token %}
+    <div class="field">
+      <label>Rating</label>
+      <div class="row gap-3">
+        {% for radio in form.rating %}
+          <label class="row gap-1 text-sm">{{ radio.tag }} {{ radio.choice_label }}&#9733;</label>
+        {% endfor %}
+      </div>
+      {% for error in form.rating.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+    </div>
+    <div class="field">
+      <label for="{{ form.title.id_for_label }}">Title (optional)</label>
+      {{ form.title }}
+    </div>
+    <div class="field">
+      <label for="{{ form.comment.id_for_label }}">Your review</label>
+      {{ form.comment }}
+      {% for error in form.comment.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+    </div>
+    <button type="submit" class="btn btn--primary btn--block">Submit review</button>
+  </form>
+</div>
+{% endblock %}

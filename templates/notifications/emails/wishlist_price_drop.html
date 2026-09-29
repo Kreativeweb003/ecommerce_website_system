@@ -1,0 +1,9 @@
+{% extends "notifications/emails/_email_base.html" %}
+{% block email_title %}Price drop{% endblock %}
+{% block email_body %}
+  <h2 style="margin:0 0 8px; font-size:22px;">Good news, {{ first_name }}</h2>
+  <p style="color:#5b5f6a; margin:0 0 16px;">An item on your wishlist just dropped in price:</p>
+  <p style="background:#fdece3; color:#e8622c; padding:12px 16px; border-radius:8px; font-size:14px;">
+    {{ item_name }} — now ${{ new_price }} <span style="text-decoration:line-through; color:#9ca0ac;">${{ old_price }}</span>
+  </p>
+{% endblock %}

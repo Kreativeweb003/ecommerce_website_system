@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Shop all — Northfield{% endblock %}
+
+{% block content %}
+<div class="shell section--tight">
+
+  <div class="breadcrumb"><a href="{% url 'products:home' %}">Home</a> / Shop</div>
+  <h1 class="display-lg" style="margin-bottom: var(--sp-6);">Shop all</h1>
+
+  <div class="grid" style="grid-template-columns: 220px 1fr; align-items: start;">
+
+    <aside class="stack gap-5">
+      <form method="get">
+        <div class="field">
+          <label for="q">Search</label>
+          <input type="text" id="q" name="q" value="{{ form.q.value|default:'' }}" placeholder="Search…">
+        </div>
+
+        <div class="field">
+          <label for="category">Category</label>
+          <select id="category" name="category">
+            <option value="">All categories</option>
+            {% for category in categories %}
+              <option value="{{ category.id }}" {% if form.category.value|stringformat:"s" == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="brand">Brand</label>
+          <select id="brand" name="brand">
+            <option value="">All brands</option>
+            {% for brand in brands %}
+              <option value="{{ brand.id }}" {% if form.brand.value|stringformat:"s" == brand.id|stringformat:"s" %}selected{% endif %}>{{ brand.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="field row gap-2">
+          <div>
+            <label for="min_price">Min $</label>
+            <input type="number" id="min_price" name="min_price" value="{{ form.min_price.value|default:'' }}">
+          </div>
+          <div>
+            <label for="max_price">Max $</label>
+            <input type="number" id="max_price" name="max_price" value="{{ form.max_price.value|default:'' }}">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="sort">Sort by</label>
+          <select id="sort" name="sort">
+            {% for value, label in form.fields.sort.choices %}
+              <option value="{{ value }}" {% if form.sort.value == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn--primary btn--block">Apply filters</button>
+        <a href="{% url 'products:product_list' %}" class="btn btn--ghost btn--block" style="margin-top: var(--sp-2);">Clear filters</a>
+      </form>
+    </aside>
+
+    <div>
+      {% if page_obj %}
+        <p class="text-soft text-sm" style="margin-bottom: var(--sp-4);">{{ page_obj.paginator.count }} product{{ page_obj.paginator.count|pluralize }}</p>
+        <div class="grid grid--products">
+          {% for product in page_obj %}
+            {% include "products/_product_tile.html" %}
+          {% endfor %}
+        </div>
+        {% include "partials/pagination.html" %}
+      {% else %}
+        <div class="empty-state">
+          <h3>No products match those filters</h3>
+          <p>Try clearing a filter or searching a different term.</p>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

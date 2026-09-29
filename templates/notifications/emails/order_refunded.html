@@ -1,0 +1,7 @@
+{% extends "notifications/emails/_email_base.html" %}
+{% block email_title %}Refund processed{% endblock %}
+{% block email_body %}
+  <h2 style="margin:0 0 8px; font-size:22px;">Your refund has been processed</h2>
+  <p style="color:#5b5f6a; margin:0 0 16px;">Hi {{ customer_name }}, a refund of <strong>${{ amount }}</strong> has been issued for order <strong>{{ order_number }}</strong>.</p>
+  <p style="color:#5b5f6a;">It may take a few business days to appear on your original payment method.</p>
+{% endblock %}

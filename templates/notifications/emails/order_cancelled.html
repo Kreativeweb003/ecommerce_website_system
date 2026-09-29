@@ -1,0 +1,7 @@
+{% extends "notifications/emails/_email_base.html" %}
+{% block email_title %}Order cancelled{% endblock %}
+{% block email_body %}
+  <h2 style="margin:0 0 8px; font-size:22px;">Order cancelled</h2>
+  <p style="color:#5b5f6a; margin:0 0 16px;">Hi {{ customer_name }}, order <strong>{{ order_number }}</strong> has been cancelled.</p>
+  {% if reason %}<p style="background:#f3f4f7; padding:12px 16px; border-radius:8px; font-size:14px; color:#5b5f6a;">{{ reason }}</p>{% endif %}
+{% endblock %}

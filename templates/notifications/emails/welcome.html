@@ -1,0 +1,6 @@
+{% extends "notifications/emails/_email_base.html" %}
+{% block email_title %}Welcome{% endblock %}
+{% block email_body %}
+  <h2 style="margin:0 0 8px; font-size:22px;">Welcome, {{ first_name }}</h2>
+  <p style="color:#5b5f6a; margin:0 0 16px;">Your account is ready. Track orders, save favorites, and check out faster next time.</p>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "dashboard/_dash_base.html" %}
+
+{% block dash_title %}Products{% endblock %}
+{% block dash_heading %}Products{% endblock %}
+
+{% block dash_actions %}
+<a href="{% url 'products:product_create' %}" class="btn btn--primary btn--sm">Add product</a>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="row gap-2" style="margin-bottom: var(--sp-5);">
+  <a href="{% url 'products:admin_product_list' %}" class="btn {% if not status %}btn--outline{% else %}btn--ghost{% endif %} btn--sm">All</a>
+  <a href="?status=draft" class="btn {% if status == 'draft' %}btn--outline{% else %}btn--ghost{% endif %} btn--sm">Draft</a>
+  <a href="?status=published" class="btn {% if status == 'published' %}btn--outline{% else %}btn--ghost{% endif %} btn--sm">Published</a>
+  <a href="?status=archived" class="btn {% if status == 'archived' %}btn--outline{% else %}btn--ghost{% endif %} btn--sm">Archived</a>
+</div>
+
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr><th>Product</th><th>SKU</th><th>Category</th><th>Price</th><th>Status</th><th>Featured</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for product in page_obj %}
+        <tr>
+          <td class="font-medium">{{ product.name }}</td>
+          <td class="text-soft">{{ product.sku }}</td>
+          <td class="text-soft">{{ product.category.name|default:"—" }}</td>
+          <td class="font-semibold">${{ product.current_price }}</td>
+          <td>
+            {% if product.status == "published" %}<span class="badge badge--success">Published</span>
+            {% elif product.status == "draft" %}<span class="badge">Draft</span>
+            {% else %}<span class="badge badge--danger">Archived</span>{% endif %}
+          </td>
+          <td>{% if product.is_featured %}<span class="badge badge--accent">Featured</span>{% endif %}</td>
+          <td>
+            <div class="row gap-2">
+              <a href="{% url 'products:product_update' slug=product.slug %}" class="btn btn--ghost btn--sm">Edit</a>
+              <a href="{% url 'products:product_delete' slug=product.slug %}" class="btn btn--ghost btn--sm text-danger">Delete</a>
+            </div>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="7" class="text-faint">No products yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% include "partials/pagination.html" %}
+
+{% endblock %}

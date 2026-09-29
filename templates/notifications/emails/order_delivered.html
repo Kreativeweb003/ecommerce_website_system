@@ -1,0 +1,7 @@
+{% extends "notifications/emails/_email_base.html" %}
+{% block email_title %}Order delivered{% endblock %}
+{% block email_body %}
+  <h2 style="margin:0 0 8px; font-size:22px;">Delivered</h2>
+  <p style="color:#5b5f6a; margin:0 0 16px;">Hi {{ customer_name }}, order <strong>{{ order_number }}</strong> has been delivered. We hope you love it.</p>
+  <p style="color:#5b5f6a;">If anything isn't right, just reply to this email.</p>
+{% endblock %}

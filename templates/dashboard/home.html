@@ -1,0 +1,96 @@
+{% extends "dashboard/_dash_base.html" %}
+
+{% block dash_title %}Overview{% endblock %}
+{% block dash_heading %}Overview{% endblock %}
+
+{% block dash_actions %}
+<div class="period-tabs">
+  <a href="?period=7d" class="{% if period == '7d' %}is-active{% endif %}">7d</a>
+  <a href="?period=30d" class="{% if period == '30d' %}is-active{% endif %}">30d</a>
+  <a href="?period=90d" class="{% if period == '90d' %}is-active{% endif %}">90d</a>
+  <a href="?period=1y" class="{% if period == '1y' %}is-active{% endif %}">1y</a>
+</div>
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: var(--sp-6);">
+  <div class="stat-card">
+    <p class="stat-card__label">Revenue</p>
+    <p class="stat-card__value">${{ sales_summary.total_revenue }}</p>
+  </div>
+  <div class="stat-card">
+    <p class="stat-card__label">Orders</p>
+    <p class="stat-card__value">{{ sales_summary.total_orders }}</p>
+  </div>
+  <div class="stat-card">
+    <p class="stat-card__label">Avg. order value</p>
+    <p class="stat-card__value">${{ sales_summary.average_order_value }}</p>
+  </div>
+  <div class="stat-card">
+    <p class="stat-card__label">New customers</p>
+    <p class="stat-card__value">{{ customer_summary.new_customers }}</p>
+  </div>
+</div>
+
+<div class="grid grid--split" style="margin-bottom: var(--sp-6);">
+
+  <div class="card">
+    <h3 class="display-sm" style="margin-bottom: var(--sp-4);">Recent orders</h3>
+    <div class="table-wrap" style="border: none;">
+      <table class="table">
+        <thead><tr><th>Order</th><th>Status</th><th>Total</th></tr></thead>
+        <tbody>
+          {% for order in recent_orders %}
+            <tr>
+              <td><a href="{% url 'orders:admin_order_detail' order_number=order.order_number %}" class="font-medium">{{ order.order_number }}</a></td>
+              <td><span class="badge badge--accent">{{ order.get_status_display }}</span></td>
+              <td class="font-semibold">${{ order.total }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="3" class="text-faint">No orders yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 class="display-sm" style="margin-bottom: var(--sp-4);">Top selling products</h3>
+    {% for product in top_selling_products %}
+      <div class="row row--between text-sm" style="margin-bottom: var(--sp-3);">
+        <span>{{ product.product__name }}</span>
+        <span class="font-medium">{{ product.total_quantity_sold }} sold</span>
+      </div>
+    {% empty %}
+      <p class="text-faint text-sm">No sales in this period yet.</p>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="grid grid--split">
+  <div class="card">
+    <h3 class="display-sm" style="margin-bottom: var(--sp-4);">Needs attention</h3>
+    <div class="row row--between" style="margin-bottom: var(--sp-2);">
+      <span class="text-sm">Low stock items</span>
+      <a href="{% url 'dashboard:inventory' %}" class="badge badge--danger">{{ low_stock_count }}</a>
+    </div>
+    <div class="row row--between" style="margin-bottom: var(--sp-2);">
+      <span class="text-sm">Out of stock</span>
+      <span class="badge badge--danger">{{ out_of_stock_count }}</span>
+    </div>
+    <div class="row row--between">
+      <span class="text-sm">Pending reviews</span>
+      <a href="{% url 'reviews:moderation_queue' %}" class="badge badge--accent">{{ pending_reviews_count }}</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 class="display-sm" style="margin-bottom: var(--sp-4);">Payments</h3>
+    <div class="row row--between" style="margin-bottom: var(--sp-2);"><span class="text-sm">Succeeded</span><span class="badge badge--success">{{ payment_summary.succeeded }}</span></div>
+    <div class="row row--between" style="margin-bottom: var(--sp-2);"><span class="text-sm">Failed</span><span class="badge badge--danger">{{ payment_summary.failed }}</span></div>
+    <div class="row row--between"><span class="text-sm">Refunded</span><span class="font-semibold">${{ payment_summary.total_refunded }}</span></div>
+  </div>
+</div>
+
+{% endblock %}
