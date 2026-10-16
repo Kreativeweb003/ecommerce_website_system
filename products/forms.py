@@ -29,6 +29,26 @@ class CategoryForm(forms.ModelForm):
         model = Category
         fields = ["name", "parent", "description", "image", "is_active"]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            excluded_ids = {self.instance.pk} | self._descendant_ids(self.instance)
+            self.fields["parent"].queryset = Category.objects.exclude(pk__in=excluded_ids)
+
+    @staticmethod
+    def _descendant_ids(category):
+        ids = set()
+        to_visit = list(category.subcategories.values_list("pk", flat=True))
+        while to_visit:
+            pk = to_visit.pop()
+            if pk in ids:
+                continue
+            ids.add(pk)
+            to_visit.extend(Category.objects.filter(parent_id=pk).values_list("pk", flat=True))
+        return ids
+
+
+
 
 class BrandForm(forms.ModelForm):
     class Meta:

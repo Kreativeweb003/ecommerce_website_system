@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Count
 from .models import Product, ProductImage, ProductVariant, Category, Brand
 
 
@@ -127,5 +127,22 @@ def get_all_products(*, status=None):
     if status:
         queryset = queryset.filter(status=status)
     return queryset
+
+
+
+def get_all_categories():
+    """Admin listing, including inactive categories, with a product count per category."""
+    return (
+        Category.objects.select_related("parent")
+        .annotate(product_count=Count("products", distinct=True))
+        .order_by("name")
+    )
+
+
+def delete_category(*, category):
+    if category.subcategories.exists():
+        raise ValidationError("This category has subcategories. Move or delete them first.")
+    category.delete()
+
 
 

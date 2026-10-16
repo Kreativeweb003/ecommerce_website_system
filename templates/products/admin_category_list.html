@@ -1,0 +1,39 @@
+{% extends "dashboard/_dash_base.html" %}
+
+{% block dash_title %}Categories{% endblock %}
+{% block dash_heading %}Categories{% endblock %}
+
+{% block dash_actions %}
+<a href="{% url 'products:admin_category_create' %}" class="btn btn--primary btn--sm">Add category</a>
+{% endblock %}
+
+{% block dash_content %}
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr><th>Name</th><th>Parent</th><th>Products</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for category in categories %}
+        <tr>
+          <td class="font-medium">{{ category.name }}</td>
+          <td class="text-soft">{{ category.parent.name|default:"—" }}</td>
+          <td>{{ category.product_count }}</td>
+          <td>
+            {% if category.is_active %}<span class="badge badge--success">Active</span>
+            {% else %}<span class="badge badge--danger">Inactive</span>{% endif %}
+          </td>
+          <td>
+            <div class="row gap-2">
+              <a href="{% url 'products:admin_category_update' pk=category.pk %}" class="btn btn--ghost btn--sm">Edit</a>
+              <a href="{% url 'products:admin_category_delete' pk=category.pk %}" class="btn btn--ghost btn--sm text-danger">Delete</a>
+            </div>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="text-faint">No categories yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

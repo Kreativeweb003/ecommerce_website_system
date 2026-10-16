@@ -4,10 +4,11 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from reviews.services import get_approved_reviews_for_product, get_product_rating_summary, get_existing_review
 from core.permissions import superuser_required
+from django.core.exceptions import ValidationError
 
 from . import services
-from .forms import ProductForm, ProductImageForm, ProductFilterForm, ProductVariantForm
-from .models import Product
+from .forms import ProductForm, ProductImageForm, ProductFilterForm, ProductVariantForm, CategoryForm
+from .models import Product, Category 
 
 
 def home_view(request):
@@ -170,4 +171,63 @@ def variant_create_view(request, slug):
 
 
 
+@login_required
+@superuser_required
+def admin_category_list_view(request):
+    categories = services.get_all_categories()
+    return render(request, "products/admin_category_list.html", {"categories": categories})
+
+
+@login_required
+@superuser_required
+def admin_category_create_view(request):
+    if request.method == "POST":
+        form = CategoryForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Category created.")
+            return redirect("products:admin_category_list")
+    else:
+        form = CategoryForm()
+
+    return render(request, "products/admin_category_form.html", {"form": form, "action": "Create"})
+
+
+@login_required
+@superuser_required
+def admin_category_update_view(request, pk):
+    category = get_object_or_404(Category, pk=pk)
+
+    if request.method == "POST":
+        form = CategoryForm(request.POST, request.FILES, instance=category)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Category updated.")
+            return redirect("products:admin_category_list")
+    else:
+        form = CategoryForm(instance=category)
+
+    return render(request, "products/admin_category_form.html", {
+        "form": form, "action": "Edit", "category": category,
+    })
+
+
+@login_required
+@superuser_required
+def admin_category_delete_view(request, pk):
+    category = get_object_or_404(Category, pk=pk)
+
+    if request.method == "POST":
+        try:
+            services.delete_category(category=category)
+            messages.success(request, "Category deleted.")
+        except ValidationError as e:
+            messages.error(request, str(e.message if hasattr(e, "message") else e))
+        return redirect("products:admin_category_list")
+
+    return render(request, "products/admin_category_confirm_delete.html", {
+        "category": category,
+        "product_count": category.products.count(),
+        "subcategory_count": category.subcategories.count(),
+    })
 

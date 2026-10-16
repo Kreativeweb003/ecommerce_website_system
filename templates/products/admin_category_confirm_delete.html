@@ -1,0 +1,31 @@
+{% extends "dashboard/_dash_base.html" %}
+
+{% block dash_title %}Delete category{% endblock %}
+{% block dash_heading %}Delete "{{ category.name }}"?{% endblock %}
+
+{% block dash_content %}
+<div class="form-card">
+  {% if subcategory_count %}
+    <div class="alert alert--error">
+      This category has {{ subcategory_count }} subcategor{{ subcategory_count|pluralize:"y,ies" }}.
+      Move or delete {{ subcategory_count|pluralize:"it,them" }} first. Deletion will be blocked.
+    </div>
+  {% endif %}
+
+  {% if product_count %}
+    <div class="alert alert--warning">
+      {{ product_count }} product{{ product_count|pluralize }} in this category will become uncategorized, not deleted.
+    </div>
+  {% endif %}
+
+  <p class="text-soft" style="margin-bottom: var(--sp-5);">This can't be undone.</p>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="row gap-3">
+      <button type="submit" class="btn btn--danger" {% if subcategory_count %}disabled{% endif %}>Delete category</button>
+      <a href="{% url 'products:admin_category_list' %}" class="btn btn--ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
