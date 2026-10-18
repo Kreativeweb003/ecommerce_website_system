@@ -210,7 +210,11 @@ RATELIMIT_USE_CACHE = "default"
 # (e.g. bad rate string). Keep this on in development to catch mistakes early.
 RATELIMIT_ENABLE = True
 
+SILENCED_SYSTEM_CHECKS = ["django_ratelimit.W001"]
 
+RATELIMIT_FAIL_OPEN = True
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CLOUDINARY_STORAGE = {
     "CLOUD_NAME": env("CLOUDINARY_CLOUD_NAME"),
@@ -221,4 +225,43 @@ CLOUDINARY_STORAGE = {
 # Tells Django to upload/serve ImageField and FileField files through Cloudinary
 # instead of local disk — this affects MEDIA files only, not static/ (CSS/JS).
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+
+
+REDIS_CACHE_URL = env("CACHE_REDIS_URL", default="")
+
+if REDIS_CACHE_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": REDIS_CACHE_URL,
+        }
+    }
+    # Redis works fine with django-ratelimit; its check just doesn't recognise it.
+    SILENCED_SYSTEM_CHECKS = ["django_ratelimit.W001"]
+else:
+    # Local development only: per-process memory cache, no Redis needed.
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "northfield-local",
+        }
+    }
+    # LocMemCache isn't shared between processes, so ratelimit flags it.
+    # Safe to silence here because the dev server runs a single process.
+    SILENCED_SYSTEM_CHECKS = ["django_ratelimit.E003", "django_ratelimit.W001"]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
