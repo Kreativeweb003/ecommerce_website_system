@@ -2,6 +2,7 @@ from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
+from core.utils import get_safe_redirect_url
 
 from cart.services import merge_guest_cart_into_user_cart
 from . import services
@@ -32,8 +33,7 @@ def login_view(request):
             if user is not None:
                 merge_guest_cart_into_user_cart(session_key=pre_login_session_key, user=user)
                 auth_login(request, user)
-                next_url = request.GET.get("next", "products:home")
-                return redirect(next_url)
+                return redirect(get_safe_redirect_url(request, "products:home"))
             form.add_error(None, "Invalid email or password.")
     else:
         form = LoginForm()

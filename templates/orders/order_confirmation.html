@@ -22,7 +22,9 @@
   </div>
 
   <div class="row gap-3" style="justify-content: center;">
-    <a href="{% url 'orders:order_detail' order_number=order.order_number %}" class="btn btn--primary">View order</a>
+    {% if user.is_authenticated %}
+      <a href="{% url 'orders:order_detail' order_number=order.order_number %}" class="btn btn--primary">View order</a>
+    {% endif %}
     <a href="{% url 'products:product_list' %}" class="btn btn--outline">Continue shopping</a>
   </div>
 </div>

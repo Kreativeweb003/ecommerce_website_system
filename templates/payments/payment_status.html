@@ -1,15 +1,27 @@
 {% extends "base.html" %}
 
+{% block extra_head %}{% if order.status == "pending" and transaction.status == "pending" %}<meta http-equiv="refresh" content="5">{% endif %}{% endblock %}
 {% block title %}Payment status — Northfield{% endblock %}
 
 {% block content %}
 <div class="shell section" style="max-width: 560px; text-align: center;">
-  {% if transaction.status == "succeeded" %}
+
+  {% if order.is_paid %}
     <div class="badge badge--success" style="margin-bottom: var(--sp-4);">Payment confirmed</div>
     <h1 class="display-lg" style="margin-bottom: var(--sp-4);">You're all set</h1>
+
+  {% elif order.status == "cancelled" %}
+    <div class="badge badge--danger" style="margin-bottom: var(--sp-4);">Order cancelled</div>
+    <h1 class="display-lg" style="margin-bottom: var(--sp-4);">This order is no longer active</h1>
+
   {% elif transaction.status == "failed" %}
     <div class="badge badge--danger" style="margin-bottom: var(--sp-4);">Payment failed</div>
     <h1 class="display-lg" style="margin-bottom: var(--sp-4);">Something went wrong</h1>
+
+  {% elif can_retry %}
+    <div class="badge badge--accent" style="margin-bottom: var(--sp-4);">Payment not completed</div>
+    <h1 class="display-lg" style="margin-bottom: var(--sp-4);">Your order is still waiting</h1>
+
   {% else %}
     <div class="badge badge--accent" style="margin-bottom: var(--sp-4);">Processing</div>
     <h1 class="display-lg" style="margin-bottom: var(--sp-4);">We're confirming your payment</h1>
@@ -18,10 +30,22 @@
   <p class="text-soft" style="margin-bottom: var(--sp-6);">Order {{ order.order_number }} &middot; ${{ order.total }}</p>
 
   <div class="row gap-3" style="justify-content: center;">
-    <a href="{% url 'orders:order_detail' order_number=order.order_number %}" class="btn btn--primary">View order</a>
-    {% if transaction.status == "failed" %}
-      <a href="{% url 'payments:payment_initiate' order_number=order.order_number %}" class="btn btn--outline">Try again</a>
+    {% if user.is_authenticated %}
+      <a href="{% url 'orders:order_detail' order_number=order.order_number %}" class="btn btn--primary">View order</a>
+    {% else %}
+      <a href="{% url 'orders:order_confirmation' order_number=order.order_number %}" class="btn btn--primary">View order</a>
+    {% endif %}
+
+    {% if can_retry %}
+      <a href="{% url 'payments:payment_initiate' order_number=order.order_number %}" class="btn btn--outline">Pay now</a>
     {% endif %}
   </div>
+
+  {% if not order.is_paid and order.status == "pending" and transaction.status == "pending" %}
+    <p class="text-faint text-sm" style="margin-top: var(--sp-5);">
+      Left the payment page without finishing?
+      <a href="{% url 'payments:payment_initiate' order_number=order.order_number %}" class="text-accent">Start payment again</a>
+    </p>
+  {% endif %}
 </div>
 {% endblock %}

@@ -2,6 +2,9 @@ import hashlib
 import hmac
 import json
 import requests
+import uuid
+from django.core.exceptions import ValidationError
+from django.urls import reverse
 from django.conf import settings
 
 from .base import BaseGateway
@@ -18,22 +21,31 @@ class PaystackGateway(BaseGateway):
         return {"Authorization": f"Bearer {self.secret_key}", "Content-Type": "application/json"}
 
     def create_payment_intent(self, *, amount, currency, order, metadata=None):
+        # Unique per attempt: the order number alone made a retry collide with the first transaction.
+        reference = f"{order.order_number}-{uuid.uuid4().hex[:8]}"
+        callback_url = f"{settings.SITE_URL}{reverse('payments:payment_status', args=[order.order_number])}"
+
         response = requests.post(
             f"{self.BASE_URL}/transaction/initialize",
             headers=self._headers(),
             json={
                 "email": order.email,
-                "amount": int(amount * 100),  # kobo/cents
+                "amount": int(amount * 100),
                 "currency": currency.upper(),
-                "reference": order.order_number,
+                "reference": reference,
+                "callback_url": callback_url,
                 "metadata": {"order_number": order.order_number, **(metadata or {})},
             },
+            timeout=15,
         )
         data = response.json()
-        result = data.get("data", {})
+        if not data.get("status"):
+            raise ValidationError(data.get("message") or "Could not start the payment. Please try again.")
+
+        result = data["data"]
         return {
-            "reference": result.get("reference"),
-            "client_secret_or_redirect_url": result.get("authorization_url"),
+            "reference": result["reference"],
+            "client_secret_or_redirect_url": result["authorization_url"],
             "raw_response": data,
         }
 
@@ -65,10 +77,11 @@ class PaystackGateway(BaseGateway):
             f"{self.BASE_URL}/refund",
             headers=self._headers(),
             json={"transaction": gateway_reference, "amount": int(amount * 100)},
+            timeout=15,
         )
         data = response.json()
         return {
-            "reference": data.get("data", {}).get("id", ""),
+            "reference": str(data.get("data", {}).get("id", "")),
             "status": "pending",
             "raw_response": data,
         }

@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from core.permissions import superuser_required
+from django.http import Http404
 
 from cart.services import get_or_create_cart, get_cart_summary, validate_cart_stock
 from . import services
@@ -46,9 +47,9 @@ def checkout_view(request):
                     checkout_data=form.cleaned_data,
                     user=request.user if request.user.is_authenticated else None,
                 )
-              
+                services.remember_guest_order(request=request, order=order)
                 request.session.pop("coupon_code", None)
-                return redirect("orders:order_confirmation", order_number=order.order_number)
+                return redirect("payments:payment_initiate", order_number=order.order_number)
             except ValidationError as e:
                 messages.error(request, str(e.message if hasattr(e, "message") else e))
     else:
@@ -68,7 +69,10 @@ def checkout_view(request):
 
 def order_confirmation_view(request, order_number):
     order = get_object_or_404(Order, order_number=order_number)
+    if not services.can_access_order(request=request, order=order):
+        raise Http404
     return render(request, "orders/order_confirmation.html", {"order": order})
+
 
 
 @login_required

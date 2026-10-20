@@ -19,7 +19,9 @@
     {% endfor %}
     <button type="submit" class="btn btn--primary btn--block btn--lg">Log in</button>
   </form>
-
+  
+  <p class="text-sm" style="margin-top: var(--sp-3);"><a href="{% url 'accounts:password_reset' %}" class="text-accent">Forgot password?</a></p>
+  
   <p class="text-soft text-sm" style="margin-top: var(--sp-4);">
     New here? <a href="{% url 'accounts:register' %}" class="text-accent font-medium">Create an account</a>
   </p>

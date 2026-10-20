@@ -50,29 +50,11 @@ def send_sms_task(self, *, event_type, recipient, message, user_id=None, referen
     from .models import NotificationLog
 
     log = NotificationLog.objects.create(
-        user_id=user_id,
-        channel="sms",
-        event_type=event_type,
-        recipient=recipient,
-        body_preview=message[:500],
-        reference=reference,
-        status="pending",
+        user_id=user_id, channel="sms", event_type=event_type, recipient=recipient,
+        body_preview=message[:500], reference=reference, status="pending",
     )
 
-    try:
-        # Plug in your SMS provider here (Twilio, Termii, etc.)
-        # Example (Twilio):
-        # from twilio.rest import Client
-        # client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-        # client.messages.create(body=message, from_=settings.TWILIO_FROM_NUMBER, to=recipient)
-
-        log.status = "sent"
-        from django.utils import timezone
-        log.sent_at = timezone.now()
-        log.save(update_fields=["status", "sent_at"])
-
-    except Exception as exc:
-        log.status = "failed"
-        log.failure_reason = str(exc)[:255]
-        log.save(update_fields=["status", "failure_reason"])
-        raise self.retry(exc=exc)
+    # Honest failure until a provider is wired in; never log a message as "sent" that wasn't.
+    log.status = "failed"
+    log.failure_reason = "No SMS provider configured."
+    log.save(update_fields=["status", "failure_reason"])

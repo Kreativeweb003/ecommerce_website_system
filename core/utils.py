@@ -2,6 +2,20 @@ import uuid
 import unicodedata
 import re
 from decimal import Decimal, ROUND_HALF_UP
+from django.conf import settings
+
+
+from django.utils.http import url_has_allowed_host_and_scheme
+
+
+def get_safe_redirect_url(request, default, param="next"):
+    """Returns ?next= only if it points at this site; otherwise the default."""
+    candidate = request.POST.get(param) or request.GET.get(param)
+    if candidate and url_has_allowed_host_and_scheme(
+        candidate, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ):
+        return candidate
+    return default
 
 
 def generate_reference_code(*, prefix="REF", length=10):
@@ -23,10 +37,16 @@ def round_currency(value, decimal_places=2):
 
 
 def get_client_ip(request):
-    """Used for audit logs, fraud checks, rate limiting — real IP behind a reverse proxy."""
+    """
+    X-Forwarded-For is client-controlled at its left end, so trust only the entry added by
+    our own proxy(ies): the Nth from the right. With TRUSTED_PROXY_COUNT=0 (default) it is ignored.
+    """
+    proxy_count = getattr(settings, "TRUSTED_PROXY_COUNT", 0)
     forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-    if forwarded_for:
-        return forwarded_for.split(",")[0].strip()
+    if proxy_count and forwarded_for:
+        parts = [p.strip() for p in forwarded_for.split(",") if p.strip()]
+        if len(parts) >= proxy_count:
+            return parts[-proxy_count]
     return request.META.get("REMOTE_ADDR")
 
 

@@ -5,33 +5,42 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.core.exceptions import ValidationError
 from core.permissions import superuser_required
+from django.contrib import messages
+from orders.services import can_access_order
+from django.http import Http404
 
 from orders.models import Order
 from . import services
 
 
-@login_required
-@superuser_required
 def payment_initiate_view(request, order_number):
-    order = get_object_or_404(Order, order_number=order_number, user=request.user, status="pending")
+    order = get_object_or_404(Order, order_number=order_number, status="pending")
+    if not can_access_order(request=request, order=order):
+        raise Http404
 
-    payment_transaction, redirect_or_secret = services.initiate_payment(order=order)
+    try:
+        _, redirect_url = services.initiate_payment(order=order)
+    except ValidationError as e:
+        messages.error(request, str(e.message if hasattr(e, "message") else e))
+        return redirect("payments:payment_status", order_number=order.order_number)
 
-    return render(request, "payments/payment_checkout.html", {
-        "order": order,
-        "transaction": payment_transaction,
-        "client_secret_or_redirect_url": redirect_or_secret,
-    })
+    return redirect(redirect_url)  # straight to the gateway's hosted page
 
 
 def payment_status_view(request, order_number):
-    """Polled or landed on after redirect back from gateway-hosted payment pages (e.g. Paystack)."""
     order = get_object_or_404(Order, order_number=order_number)
+    if not can_access_order(request=request, order=order):
+        raise Http404
+
     payment_transaction = services.get_transaction_for_order(order=order)
+    can_retry = order.status == "pending" and (
+        payment_transaction is None or payment_transaction.status in ("failed", "cancelled")
+    )
 
     return render(request, "payments/payment_status.html", {
         "order": order,
         "transaction": payment_transaction,
+        "can_retry": can_retry,
     })
 
 

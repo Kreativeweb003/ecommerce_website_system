@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
+from core.utils import get_safe_redirect_url
 
 from core.utils import is_ajax
 from products.models import Product, ProductVariant
@@ -37,8 +38,7 @@ def wishlist_add_view(request):
             return JsonResponse({"success": False, "error": error_message}, status=400)
         messages.info(request, error_message)
 
-    next_url = request.POST.get("next", "wishlist:wishlist_detail")
-    return redirect(next_url)
+    return redirect(get_safe_redirect_url(request, "wishlist:wishlist_detail"))
 
 
 @login_required

@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
+from core.utils import get_safe_redirect_url
 
 from core.utils import is_ajax
 from . import services
@@ -68,8 +69,7 @@ def add_to_cart_view(request):
             return JsonResponse({"success": False, "error": "Invalid request."}, status=400)
         messages.error(request, "Could not add item to cart.")
 
-    next_url = request.POST.get("next", "cart:cart_detail")
-    return redirect(next_url)
+    return redirect(get_safe_redirect_url(request, "cart:cart_detail"))
 
 
 @require_POST

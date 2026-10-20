@@ -1,25 +1,16 @@
 def site_context(request):
-    """
-    Injected into every template via settings.TEMPLATES — avoids every view having to
-    manually pass cart totals, wishlist counts, etc. into context.
-    """
-    context = {
-        "SITE_NAME": "Your Store",
-    }
+    from cart.models import Cart
+    from cart.services import get_or_create_cart
+    from wishlist.services import get_or_create_wishlist
+
+    context = {"SITE_NAME": "Northfield", "cart_item_count": 0, "wishlist_item_count": 0}
 
     if request.user.is_authenticated:
-        from cart.services import get_or_create_cart
-        from wishlist.services import get_or_create_wishlist
-
-        cart = get_or_create_cart(request=request)
-        wishlist = get_or_create_wishlist(user=request.user)
-
-        context["cart_item_count"] = cart.total_items
-        context["wishlist_item_count"] = wishlist.total_items
-    else:
-        context["cart_item_count"] = 0
-        context["wishlist_item_count"] = 0
+        context["cart_item_count"] = get_or_create_cart(request=request).total_items
+        context["wishlist_item_count"] = get_or_create_wishlist(user=request.user).total_items
+    elif request.session.session_key:
+        guest_cart = Cart.objects.filter(session_key=request.session.session_key, user__isnull=True).first()
+        if guest_cart:
+            context["cart_item_count"] = guest_cart.total_items
 
     return context
-
-

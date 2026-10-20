@@ -6,6 +6,11 @@ from orders.models import Order
 from .gateways import get_gateway
 from .models import PaymentTransaction, Refund, WebhookEvent
 
+import logging
+logger = logging.getLogger(__name__)
+
+
+
 
 def initiate_payment(*, order, gateway_name=None):
     """Starts a payment on the gateway and records a pending transaction."""
@@ -82,18 +87,29 @@ def process_webhook_event(*, gateway_name, payload_body, headers):
 
 
 def _apply_transaction_status(*, payment_transaction, new_status):
+    # Never let a stray or duplicate event downgrade a finished payment.
+    if new_status == "pending" or payment_transaction.status in ("succeeded", "refunded"):
+        return
     if payment_transaction.status == new_status:
-        return  # already applied — avoids double-processing on webhook retries
+        return
 
     payment_transaction.status = new_status
     payment_transaction.save(update_fields=["status", "updated_at"])
 
     order = payment_transaction.order
 
-    if new_status == "succeeded" and order.status == "pending":
-        mark_order_paid(order=order)
+    if new_status == "succeeded":
+        try:
+            mark_order_paid(order=order)
+        except ValidationError:
+            # Money arrived but the order is no longer pending (expired/cancelled) — needs a human.
+            order.refresh_from_db()
+            payment_transaction.failure_reason = f"Paid while order was '{order.status}' — review/refund manually."
+            payment_transaction.save(update_fields=["failure_reason", "updated_at"])
+            logger.warning("Late payment for order %s (status %s)", order.order_number, order.status)
     elif new_status == "failed":
-        pass  # order stays "pending" — customer can retry payment with a new transaction
+        notify_payment_failed(order=order, reason=payment_transaction.failure_reason)
+
 
 
 def get_transaction_for_order(*, order):

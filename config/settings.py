@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 import environ
+from django.core.exceptions import ImproperlyConfigured
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -96,12 +98,13 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
+
+DATABASES = {"default": env.db("DATABASE_URL", default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}")}
+
+if not DEBUG and DATABASES["default"]["ENGINE"].endswith("sqlite3"):
+    raise ImproperlyConfigured(
+        "Use PostgreSQL in production: select_for_update() (stock and coupon locking) does nothing on SQLite."
+    )
 
 
 # Password validation
@@ -222,9 +225,24 @@ CLOUDINARY_STORAGE = {
     "API_SECRET": env("CLOUDINARY_API_SECRET"),
 }
 
-# Tells Django to upload/serve ImageField and FileField files through Cloudinary
-# instead of local disk — this affects MEDIA files only, not static/ (CSS/JS).
-DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+
+STORAGES = {
+    "default": {"BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage"},
+    "staticfiles": {
+        "BACKEND": (
+            "django.contrib.staticfiles.storage.StaticFilesStorage"
+            if DEBUG
+            else "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        )
+    },
+}
+
+
+#----------------------------------------------------------------
+#     Redis Caching configuration  
+#----------------------------------------------------------------
+
+
 
 
 REDIS_CACHE_URL = env("CACHE_REDIS_URL", default="")
@@ -255,8 +273,49 @@ else:
 
 
 
+PENDING_ORDER_EXPIRY_MINUTES = env.int("PENDING_ORDER_EXPIRY_MINUTES", default=60)  # keep >= 30 (Stripe minimum)
+
+CELERY_BEAT_SCHEDULE = {
+    "cancel-expired-pending-orders": {
+        "task": "orders.tasks.cancel_expired_pending_orders",
+        "schedule": 600.0,  # every 10 minutes
+    },
+}
 
 
+
+#----------------------------------------------------------------
+#        Production settings
+#----------------------------------------------------------------
+
+SECRET_KEY = env("SECRET_KEY")                      # no default, so a missing key fails loudly
+DEBUG = env.bool("DEBUG", default=False)            # safe default
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
+SITE_URL = env("SITE_URL", default="http://127.0.0.1:8000")
+TRUSTED_PROXY_COUNT = env.int("TRUSTED_PROXY_COUNT", default=0)   # see rate-limit fix below
+
+if not DEBUG:
+    SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=True)
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=3600)  # raise to 31536000 once HTTPS is confirmed
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    X_FRAME_OPTIONS = "DENY"
+    CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
+    # Leave CSRF_COOKIE_HTTPONLY at its default (False): static/js/main.js reads the csrftoken cookie.
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "root": {"handlers": ["console"], "level": env("LOG_LEVEL", default="WARNING")},
+}
+
+SENTRY_DSN = env("SENTRY_DSN", default="")
+if SENTRY_DSN:
+    import sentry_sdk
+    sentry_sdk.init(dsn=SENTRY_DSN, send_default_pii=False, traces_sample_rate=0.0)
 
 
 

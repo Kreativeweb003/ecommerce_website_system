@@ -128,7 +128,7 @@ def create_order_from_cart(*, cart, checkout_data, user=None):
 
 @transaction.atomic
 def mark_order_paid(*, order, user=None):
-    """Called by the payments app once payment is confirmed. Converts reservations into real stock deductions."""
+    order = Order.objects.select_for_update().get(pk=order.pk)  # serialises against the expiry job (fix 6)
     if order.status != "pending":
         raise ValidationError("Only pending orders can be marked as paid.")
 
@@ -144,6 +144,7 @@ def mark_order_paid(*, order, user=None):
     order.save(update_fields=["status", "paid_at", "updated_at"])
 
     OrderStatusHistory.objects.create(order=order, status="paid", note="Payment confirmed.", changed_by=user)
+    notify_order_confirmed(order=order)  # moved here: customers were told "confirmed" before paying
     return order
 
   
@@ -247,3 +248,23 @@ def get_all_orders(*, status=None):
     if status:
         queryset = queryset.filter(status=status)
     return queryset
+
+
+
+
+
+def can_access_order(*, request, order):
+    """Owner, superuser, or the guest session that placed the order."""
+    user = request.user
+    if user.is_authenticated and (order.user_id == user.id or user.is_superuser):
+        return True
+    return order.order_number in request.session.get("guest_orders", [])
+
+
+def remember_guest_order(*, request, order):
+    """Guests have no account, so remember the order in their session to let them pay and view it."""
+    if request.user.is_authenticated:
+        return
+    guest_orders = request.session.get("guest_orders", [])
+    guest_orders.append(order.order_number)
+    request.session["guest_orders"] = guest_orders
