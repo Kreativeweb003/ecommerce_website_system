@@ -17,4 +17,8 @@ urlpatterns = [
     path("manage/categories/create/", views.admin_category_create_view, name="admin_category_create"),
     path("manage/categories/<int:pk>/edit/", views.admin_category_update_view, name="admin_category_update"),
     path("manage/categories/<int:pk>/delete/", views.admin_category_delete_view, name="admin_category_delete"),
+    path("manage/brands/", views.admin_brand_list_view, name="admin_brand_list"),
+    path("manage/brands/create/", views.admin_brand_create_view, name="admin_brand_create"),
+    path("manage/brands/<int:pk>/edit/", views.admin_brand_update_view, name="admin_brand_update"),
+    path("manage/brands/<int:pk>/delete/", views.admin_brand_delete_view, name="admin_brand_delete"),
 ]

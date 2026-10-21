@@ -7,8 +7,8 @@ from core.permissions import superuser_required
 from django.core.exceptions import ValidationError
 
 from . import services
-from .forms import ProductForm, ProductImageForm, ProductFilterForm, ProductVariantForm, CategoryForm
-from .models import Product, Category 
+from .forms import ProductForm, ProductImageForm, ProductFilterForm, ProductVariantForm, CategoryForm, BrandForm
+from .models import Product, Category, Brand
 
 
 def home_view(request):
@@ -230,4 +230,71 @@ def admin_category_delete_view(request, pk):
         "product_count": category.products.count(),
         "subcategory_count": category.subcategories.count(),
     })
+
+@login_required
+@superuser_required
+def admin_brand_list_view(request):
+    brands = services.get_admin_brands()
+    return render(request, "products/admin_brand_list.html", {"brands": brands})
+
+
+@login_required
+@superuser_required
+def admin_brand_create_view(request):
+    if request.method == "POST":
+        form = BrandForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Brand created.")
+            return redirect("products:admin_brand_list")
+    else:
+        form = BrandForm()
+
+    return render(request, "products/admin_brand_form.html", {"form": form, "action": "Create"})
+
+
+@login_required
+@superuser_required
+def admin_brand_update_view(request, pk):
+    brand = get_object_or_404(Brand, pk=pk)
+
+    if request.method == "POST":
+        form = BrandForm(request.POST, request.FILES, instance=brand)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Brand updated.")
+            return redirect("products:admin_brand_list")
+    else:
+        form = BrandForm(instance=brand)
+
+    return render(request, "products/admin_brand_form.html", {"form": form, "action": "Edit", "brand": brand})
+
+
+@login_required
+@superuser_required
+def admin_brand_delete_view(request, pk):
+    brand = get_object_or_404(Brand, pk=pk)
+
+    if request.method == "POST":
+        services.delete_brand(brand=brand)
+        messages.success(request, "Brand deleted.")
+        return redirect("products:admin_brand_list")
+
+    return render(request, "products/admin_brand_confirm_delete.html", {
+        "brand": brand,
+        "product_count": brand.products.count(),
+    })
+
+
+
+
+
+
+
+
+
+
+
+
+
 

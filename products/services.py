@@ -145,4 +145,15 @@ def delete_category(*, category):
     category.delete()
 
 
+def get_admin_brands():
+    """Admin listing: includes inactive brands, with a product count per brand."""
+    return Brand.objects.annotate(product_count=Count("products", distinct=True)).order_by("name")
+
+
+def delete_brand(*, brand):
+    # Product.brand uses SET_NULL, so products survive and simply lose their brand.
+    brand.delete()
+
+
+
 

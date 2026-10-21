@@ -14,6 +14,7 @@
         <a href="{% url 'dashboard:home' %}" class="{% if request.resolver_match.url_name == 'home' %}is-active{% endif %}">Overview</a>
         <a href="{% url 'products:admin_product_list' %}" class="{% if request.resolver_match.url_name == 'admin_product_list' %}is-active{% endif %}">Products</a>
         <a href="{% url 'products:admin_category_list' %}" class="{% if 'admin_category' in request.resolver_match.url_name %}is-active{% endif %}">Categories</a>
+        <a href="{% url 'products:admin_brand_list' %}" class="{% if 'admin_brand' in request.resolver_match.url_name %}is-active{% endif %}">Brands</a>
         <a href="{% url 'dashboard:sales' %}" class="{% if request.resolver_match.url_name == 'sales' %}is-active{% endif %}">Sales</a>
         <a href="{% url 'orders:admin_order_list' %}" class="{% if 'order' in request.resolver_match.url_name %}is-active{% endif %}">Orders</a>
         <a href="{% url 'dashboard:inventory' %}" class="{% if request.resolver_match.url_name == 'inventory' %}is-active{% endif %}">Inventory</a>

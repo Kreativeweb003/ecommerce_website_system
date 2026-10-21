@@ -1,0 +1,46 @@
+{% extends "dashboard/_dash_base.html" %}
+{% load cloudinary_extras %}
+
+{% block dash_title %}Brands{% endblock %}
+{% block dash_heading %}Brands{% endblock %}
+
+{% block dash_actions %}
+<a href="{% url 'products:admin_brand_create' %}" class="btn btn--primary btn--sm">Add brand</a>
+{% endblock %}
+
+{% block dash_content %}
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr><th>Brand</th><th>Products</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for brand in brands %}
+        <tr>
+          <td>
+            <div class="row gap-3">
+              <div style="width: 40px; height: 40px; border-radius: var(--radius-sm); background: var(--bg-subtle); overflow: hidden; flex-shrink: 0;">
+                {% if brand.logo %}<img src="{{ brand.logo|optimized:'q_auto,f_auto,w_80,h_80,c_fit' }}" alt="{{ brand.name }}" style="width:100%; height:100%; object-fit:contain;">{% endif %}
+              </div>
+              <span class="font-medium">{{ brand.name }}</span>
+            </div>
+          </td>
+          <td>{{ brand.product_count }}</td>
+          <td>
+            {% if brand.is_active %}<span class="badge badge--success">Active</span>
+            {% else %}<span class="badge badge--danger">Inactive</span>{% endif %}
+          </td>
+          <td>
+            <div class="row gap-2">
+              <a href="{% url 'products:admin_brand_update' pk=brand.pk %}" class="btn btn--ghost btn--sm">Edit</a>
+              <a href="{% url 'products:admin_brand_delete' pk=brand.pk %}" class="btn btn--ghost btn--sm text-danger">Delete</a>
+            </div>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4" class="text-faint">No brands yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "dashboard/_dash_base.html" %}
+
+{% block dash_title %}{{ action }} brand{% endblock %}
+{% block dash_heading %}{{ action }} brand{% endblock %}
+
+{% block dash_content %}
+<form method="post" enctype="multipart/form-data" class="form-card">
+  {% csrf_token %}
+  {% for field in form %}
+    <div class="field {% if field.name == 'is_active' %}field--checkbox{% endif %}">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.help_text %}<p class="field-hint">{{ field.help_text }}</p>{% endif %}
+      {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+    </div>
+  {% endfor %}
+  <div class="row gap-3">
+    <button type="submit" class="btn btn--primary">Save brand</button>
+    <a href="{% url 'products:admin_brand_list' %}" class="btn btn--ghost">Cancel</a>
+  </div>
+</form>
+{% endblock %}
+

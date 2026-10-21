@@ -1,0 +1,24 @@
+{% extends "dashboard/_dash_base.html" %}
+
+{% block dash_title %}Delete brand{% endblock %}
+{% block dash_heading %}Delete "{{ brand.name }}"?{% endblock %}
+
+{% block dash_content %}
+<div class="form-card">
+  {% if product_count %}
+    <div class="alert alert--warning">
+      {{ product_count }} product{{ product_count|pluralize }} will keep existing but lose this brand.
+    </div>
+  {% endif %}
+
+  <p class="text-soft" style="margin-bottom: var(--sp-5);">This can't be undone.</p>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="row gap-3">
+      <button type="submit" class="btn btn--danger">Delete brand</button>
+      <a href="{% url 'products:admin_brand_list' %}" class="btn btn--ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
