@@ -1,6 +1,89 @@
 from django.db import transaction
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Max
 from .models import Product, ProductImage, ProductVariant, Category, Brand
+import logging
+from PIL import Image
+
+logger = logging.getLogger(__name__)
+
+
+MAX_IMAGE_SIZE_MB = 5
+ALLOWED_IMAGE_FORMATS = {"JPEG", "PNG", "WEBP", "GIF"}
+
+
+def validate_image_file(image_file):
+    """Checks size and that the bytes really are an image (the browser's content type can be faked)."""
+    if image_file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024:
+        raise ValidationError(f"{image_file.name} is larger than {MAX_IMAGE_SIZE_MB}MB.")
+    try:
+        img = Image.open(image_file)
+        if img.format not in ALLOWED_IMAGE_FORMATS:
+            raise ValueError("unsupported format")
+        img.verify()
+    except Exception:
+        raise ValidationError(f"{image_file.name} is not a valid JPG, PNG, WebP or GIF image.")
+    finally:
+        image_file.seek(0)
+
+
+@transaction.atomic
+def add_product_image(*, product, image_file):
+    validate_image_file(image_file)
+
+    existing = product.images.all()
+    is_first = not existing.exists()
+
+    max_order = existing.aggregate(m=Max("display_order"))["m"]
+    next_order = 0 if max_order is None else max_order + 1
+
+    return ProductImage.objects.create(
+        product=product,
+        image=image_file,
+        is_primary=is_first,
+        display_order=next_order,
+    )
+
+
+@transaction.atomic
+def set_primary_image(*, image):
+    # The storefront shows images.first, which is ordered by display_order,
+    # so "main" must also become display_order 0, not just flip a flag.
+    others = list(image.product.images.exclude(pk=image.pk).order_by("display_order", "id"))
+    image.is_primary = True
+    image.display_order = 0
+    for position, other in enumerate(others, start=1):
+        other.is_primary = False
+        other.display_order = position
+    ProductImage.objects.bulk_update([image, *others], ["is_primary", "display_order"])
+
+
+@transaction.atomic
+def delete_product_image(*, image):
+    product = image.product
+    was_primary = image.is_primary
+    storage, file_name = image.image.storage, image.image.name
+
+    image.delete()
+
+    if was_primary:
+        replacement = product.images.order_by("display_order", "id").first()
+        if replacement:
+            replacement.is_primary = True
+            replacement.save(update_fields=["is_primary"])
+
+    def _remove_stored_file():
+        # Runs only after the DB delete commits. A failure leaves an orphan file, never a broken row.
+        if not file_name:
+            return
+        try:
+            storage.delete(file_name)
+        except Exception:
+            logger.warning("Could not delete stored image %s", file_name, exc_info=True)
+
+    transaction.on_commit(_remove_stored_file)
+
+
+  
 
 
 def get_published_products():
@@ -101,10 +184,6 @@ def delete_product(*, product):
     product.delete()
 
 
-def add_product_image(*, product, image_file, is_primary=False):
-    if is_primary:
-        ProductImage.objects.filter(product=product).update(is_primary=False)
-    return ProductImage.objects.create(product=product, image=image_file, is_primary=is_primary)
 
 
 def create_variant(*, product, data, attribute_value_ids):

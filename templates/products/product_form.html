@@ -1,35 +1,87 @@
-{% extends "base.html" %}
+{% extends "dashboard/_dash_base.html" %}
+{% load static %}
+{% load cloudinary_extras %}
 
-{% block title %}{{ action }} product — Northfield{% endblock %}
+{% block dash_title %}{{ action }} product{% endblock %}
+{% block dash_heading %}{{ action }} product{% endblock %}
 
-{% block content %}
-<div class="shell section--tight">
-  <h1 class="display-lg" style="margin-bottom: var(--sp-6);">{{ action }} product</h1>
+{% block dash_content %}
+<form method="post" enctype="multipart/form-data" class="form-card form-card--wide">
+  {% csrf_token %}
 
-  <form method="post" enctype="multipart/form-data" class="form-card form-card--wide">
-    {% csrf_token %}
-    <div class="grid grid--2">
-      {% for field in form %}
-        <div class="field">
-          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-          {{ field }}
-          {% if field.help_text %}<p class="field-hint">{{ field.help_text }}</p>{% endif %}
-          {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
-        </div>
-      {% endfor %}
-    </div>
+  {% if form.non_field_errors %}
+    <div class="alert alert--error">{{ form.non_field_errors.0 }}</div>
+  {% endif %}
 
-    {% if not product %}
+  <div class="grid grid--2">
+    {% for field in form %}
       <div class="field">
-        <label for="images">Product images</label>
-        <input type="file" id="images" name="images" multiple accept="image/*">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<p class="field-hint">{{ field.help_text }}</p>{% endif %}
+        {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
       </div>
-    {% endif %}
+    {% endfor %}
+  </div>
 
-    <div class="row gap-3" style="margin-top: var(--sp-4);">
-      <button type="submit" class="btn btn--primary btn--lg">{{ action }} product</button>
-      {% if product %}<a href="{% url 'products:product_detail' slug=product.slug %}" class="btn btn--ghost">Cancel</a>{% endif %}
+  <div class="image-manager" id="image-manager"
+       data-mode="{% if product %}edit{% else %}create{% endif %}"
+       {% if product %}data-upload-url="{% url 'products:admin_product_image_add' slug=product.slug %}"{% endif %}
+       style="margin-top: var(--sp-4);">
+
+    <p class="font-semibold text-sm" style="margin-bottom: var(--sp-2);">Product images</p>
+
+    <input type="file" id="image-input" class="visually-hidden"
+           {% if not product %}name="images"{% endif %}
+           accept="image/jpeg,image/png,image/webp,image/gif" multiple>
+
+    <label for="image-input" id="image-zone" class="image-zone">
+      <strong>Click to choose images</strong> or drag them here<br>
+      <span class="text-faint text-xs">JPG, PNG, WebP or GIF, up to 5MB each</span>
+    </label>
+
+    <p class="field-hint">
+      {% if product %}
+        Images upload instantly. The main image is the one shown first in the store.
+      {% else %}
+        Images upload when you save. The first image is the main one; use "Make main" to change it.
+      {% endif %}
+      <span id="image-count"></span>
+    </p>
+
+    <div class="image-grid" id="image-grid">
+      {% if product %}
+        {% for image in product.images.all %}
+          <div class="image-card{% if image.is_primary %} is-primary{% endif %}"
+               data-id="{{ image.pk }}"
+               data-delete-url="{% url 'products:admin_product_image_delete' pk=image.pk %}"
+               data-primary-url="{% url 'products:admin_product_image_primary' pk=image.pk %}">
+            <img src="{{ image.image|optimized:'q_auto,f_auto,w_300,h_300,c_fill' }}" alt="Product image">
+            <span class="image-card__badge">Main</span>
+            <button type="button" class="image-card__remove js-image-remove" aria-label="Remove image">&times;</button>
+            <button type="button" class="image-card__primary js-image-primary">Make main</button>
+          </div>
+        {% endfor %}
+      {% endif %}
     </div>
-  </form>
-</div>
+
+    <template id="image-card-template">
+      <div class="image-card">
+        <img src="" alt="Product image">
+        <span class="image-card__badge">Main</span>
+        <button type="button" class="image-card__remove js-image-remove" aria-label="Remove image">&times;</button>
+        <button type="button" class="image-card__primary js-image-primary">Make main</button>
+      </div>
+    </template>
+  </div>
+
+  <div class="row gap-3" style="margin-top: var(--sp-5);">
+    <button type="submit" class="btn btn--primary btn--lg">{{ action }} product</button>
+    <a href="{% url 'products:admin_product_list' %}" class="btn btn--ghost">Cancel</a>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/product_images.js' %}"></script>
 {% endblock %}

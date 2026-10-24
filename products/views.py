@@ -8,7 +8,21 @@ from django.core.exceptions import ValidationError
 
 from . import services
 from .forms import ProductForm, ProductImageForm, ProductFilterForm, ProductVariantForm, CategoryForm, BrandForm
-from .models import Product, Category, Brand
+from core.templatetags.cloudinary_extras import optimized
+from .models import Product, Category, Brand, ProductImage
+
+from django.http import JsonResponse
+from django.urls import reverse
+from django.views.decorators.http import require_POST
+
+
+
+
+
+
+
+
+
 
 
 def home_view(request):
@@ -104,9 +118,15 @@ def product_create_view(request):
         form = ProductForm(request.POST)
         if form.is_valid():
             images = request.FILES.getlist("images")
-            product = services.create_product(data=form.cleaned_data, images=images)
-            messages.success(request, "Product created successfully.")
-            return redirect("products:product_detail", slug=product.slug)
+            try:
+                for image_file in images:
+                    services.validate_image_file(image_file)
+            except ValidationError as e:
+                form.add_error(None, e.messages[0])
+            else:
+                services.create_product(data=form.cleaned_data, images=images)
+                messages.success(request, "Product created successfully.")
+                return redirect("products:admin_product_list")
     else:
         form = ProductForm()
 
@@ -123,7 +143,7 @@ def product_update_view(request, slug):
         if form.is_valid():
             services.update_product(product=product, data=form.cleaned_data)
             messages.success(request, "Product updated successfully.")
-            return redirect("products:product_detail", slug=product.slug)
+            return redirect("products:admin_product_list")
     else:
         form = ProductForm(instance=product)
 
@@ -287,7 +307,53 @@ def admin_brand_delete_view(request, pk):
 
 
 
+def _image_json(image):
+    return {
+        "id": image.pk,
+        "thumb_url": optimized(image.image, "q_auto,f_auto,w_300,h_300,c_fill"),
+        "is_primary": image.is_primary,
+        "delete_url": reverse("products:admin_product_image_delete", args=[image.pk]),
+        "primary_url": reverse("products:admin_product_image_primary", args=[image.pk]),
+    }
 
+
+@login_required
+@superuser_required
+@require_POST
+def admin_product_image_add_view(request, slug):
+    product = get_object_or_404(Product, slug=slug)
+    files = request.FILES.getlist("images")
+    if not files:
+        return JsonResponse({"success": False, "error": "No image received."}, status=400)
+
+    added, errors = [], []
+    for image_file in files:
+        try:
+            added.append(_image_json(services.add_product_image(product=product, image_file=image_file)))
+        except ValidationError as e:
+            errors.append(e.messages[0])
+
+    return JsonResponse({"success": bool(added), "images": added, "errors": errors}, status=200 if added else 400)
+
+
+@login_required
+@superuser_required
+@require_POST
+def admin_product_image_delete_view(request, pk):
+    image = get_object_or_404(ProductImage, pk=pk)
+    product = image.product
+    services.delete_product_image(image=image)
+    new_primary = product.images.filter(is_primary=True).first()
+    return JsonResponse({"success": True, "primary_id": new_primary.pk if new_primary else None})
+
+
+@login_required
+@superuser_required
+@require_POST
+def admin_product_image_primary_view(request, pk):
+    image = get_object_or_404(ProductImage, pk=pk)
+    services.set_primary_image(image=image)
+    return JsonResponse({"success": True, "primary_id": image.pk})
 
 
 
