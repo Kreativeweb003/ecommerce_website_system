@@ -13,7 +13,7 @@
         {% endif %}
       {% endwith %}
     </div>
-    <p class="product-tile__eyebrow">{{ product.category.name|default:product.brand.name }}</p>
+    <p class="product-tile__eyebrow">{% if product.category %}{{ product.category.name }}{% elif product.brand %}{{ product.brand.name }}{% endif %}</p>
     <p class="product-tile__title">{{ product.name }}</p>
   </a>
 
