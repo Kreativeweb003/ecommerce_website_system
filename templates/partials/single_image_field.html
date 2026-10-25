@@ -1,0 +1,21 @@
+<div class="single-image js-single-image" data-remove-url="{{ remove_url|default:'' }}">
+  <p class="font-semibold text-sm" style="margin-bottom: var(--sp-2);">{{ label }}</p>
+
+  <div class="single-image__preview"{% if not current_url %} hidden{% endif %}>
+    <img {% if current_url %}src="{{ current_url }}"{% endif %} alt="">
+    <span class="single-image__tag js-single-tag"></span>
+    <button type="button" class="image-card__remove js-single-remove" aria-label="Remove image">&times;</button>
+  </div>
+
+  <input type="file" id="{{ field.id_for_label }}" name="{{ field.html_name }}"
+         class="visually-hidden js-single-input"
+         accept="image/jpeg,image/png,image/webp,image/gif">
+
+  <label for="{{ field.id_for_label }}" class="image-zone js-single-zone">
+    <strong class="js-single-title">{% if current_url %}Replace image{% else %}Click to choose an image{% endif %}</strong>
+    or drag it here<br>
+    <span class="text-faint text-xs">JPG, PNG, WebP or GIF, up to 5MB</span>
+  </label>
+
+  {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+</div>

@@ -217,18 +217,20 @@ def admin_category_create_view(request):
 @superuser_required
 def admin_category_update_view(request, pk):
     category = get_object_or_404(Category, pk=pk)
+    previous_image_name = category.image.name
+    saved_image_url = optimized(category.image, "q_auto,f_auto,w_400,h_400,c_fill")  # "" if no image
 
     if request.method == "POST":
         form = CategoryForm(request.POST, request.FILES, instance=category)
         if form.is_valid():
-            form.save()
+            services.save_category(form=form, previous_image_name=previous_image_name)
             messages.success(request, "Category updated.")
             return redirect("products:admin_category_list")
     else:
         form = CategoryForm(instance=category)
 
     return render(request, "products/admin_category_form.html", {
-        "form": form, "action": "Edit", "category": category,
+        "form": form, "action": "Edit", "category": category, "saved_image_url": saved_image_url,
     })
 
 
@@ -356,7 +358,13 @@ def admin_product_image_primary_view(request, pk):
     return JsonResponse({"success": True, "primary_id": image.pk})
 
 
-
+@login_required
+@superuser_required
+@require_POST
+def admin_category_image_delete_view(request, pk):
+    category = get_object_or_404(Category, pk=pk)
+    services.remove_category_image(category=category)
+    return JsonResponse({"success": True})
 
 
 

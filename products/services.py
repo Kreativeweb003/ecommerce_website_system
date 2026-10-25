@@ -236,3 +236,47 @@ def delete_brand(*, brand):
 
 
 
+def _delete_stored_file(storage, file_name):
+    try:
+        storage.delete(file_name)
+    except Exception:
+        # An orphaned file is harmless; a failed request is not.
+        logger.warning("Could not delete stored file %s", file_name, exc_info=True)
+
+
+@transaction.atomic
+def save_category(*, form, previous_image_name=""):
+    """Saves the category form and, if the image was replaced, deletes the old stored file after commit."""
+    category = form.save()
+    if previous_image_name and category.image.name != previous_image_name:
+        storage = category.image.storage
+        transaction.on_commit(lambda: _delete_stored_file(storage, previous_image_name))
+    return category
+
+
+@transaction.atomic
+def remove_category_image(*, category):
+    file_name = category.image.name
+    if not file_name:
+        return
+    storage = category.image.storage
+    category.image = ""
+    category.save(update_fields=["image"])
+    transaction.on_commit(lambda: _delete_stored_file(storage, file_name))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

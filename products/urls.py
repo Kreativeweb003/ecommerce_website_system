@@ -25,4 +25,5 @@ urlpatterns = [
     path("manage/products/<slug:slug>/images/add/", views.admin_product_image_add_view, name="admin_product_image_add"),
     path("manage/images/<int:pk>/delete/", views.admin_product_image_delete_view, name="admin_product_image_delete"),
     path("manage/images/<int:pk>/primary/", views.admin_product_image_primary_view, name="admin_product_image_primary"),
+    path("manage/categories/<int:pk>/image/delete/", views.admin_category_image_delete_view, name="admin_category_image_delete"),
 ]

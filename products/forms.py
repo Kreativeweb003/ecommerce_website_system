@@ -46,6 +46,14 @@ class CategoryForm(forms.ModelForm):
             ids.add(pk)
             to_visit.extend(Category.objects.filter(parent_id=pk).values_list("pk", flat=True))
         return ids
+    
+    def clean_image(self):
+        image = self.cleaned_data.get("image")
+        # Only freshly uploaded files have a content_type; an already-saved image is skipped.
+        if image and hasattr(image, "content_type"):
+            from .services import validate_image_file
+            validate_image_file(image)
+        return image
 
 
 

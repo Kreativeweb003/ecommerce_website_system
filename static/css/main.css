@@ -1034,7 +1034,54 @@ p { margin: 0; }
 @keyframes image-spin { to { transform: rotate(360deg); } }
 
 
+/* Single-image field (category image, brand logo) */
+.single-image { margin: var(--sp-2) 0 var(--sp-4); }
 
+.single-image__preview {
+  position: relative;
+  width: 200px;
+  max-width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-subtle);
+  border: 1px solid var(--line);
+  margin-bottom: var(--sp-3);
+}
+
+.single-image__preview[hidden] { display: none; }
+.single-image__preview img { width: 100%; height: 100%; object-fit: cover; }
+
+.single-image__tag {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.single-image__tag:empty { display: none; }
+
+.single-image__preview.is-busy { pointer-events: none; }
+.single-image__preview.is-busy img { opacity: 0.45; }
+
+.single-image__preview.is-busy::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border: 3px solid var(--line-strong);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: image-spin 0.7s linear infinite;
+}
 
 
 

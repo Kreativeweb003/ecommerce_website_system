@@ -1,4 +1,5 @@
 {% extends "dashboard/_dash_base.html" %}
+{% load static %}
 
 {% block dash_title %}{{ action }} category{% endblock %}
 {% block dash_heading %}{{ action }} category{% endblock %}
@@ -6,17 +7,36 @@
 {% block dash_content %}
 <form method="post" enctype="multipart/form-data" class="form-card">
   {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <div class="alert alert--error">{{ form.non_field_errors.0 }}</div>
+  {% endif %}
+
+  {% if saved_image_url %}
+    {% url 'products:admin_category_image_delete' pk=category.pk as remove_url %}
+  {% endif %}
+
   {% for field in form %}
-    <div class="field {% if field.name == 'is_active' %}field--checkbox{% endif %}">
-      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-      {{ field }}
-      {% if field.help_text %}<p class="field-hint">{{ field.help_text }}</p>{% endif %}
-      {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
-    </div>
+    {% if field.name == "image" %}
+      {% include "partials/single_image_field.html" with field=field label=field.label current_url=saved_image_url remove_url=remove_url %}
+    {% else %}
+      <div class="field {% if field.name == 'is_active' %}field--checkbox{% endif %}">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<p class="field-hint">{{ field.help_text }}</p>{% endif %}
+        {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+      </div>
+    {% endif %}
   {% endfor %}
+
   <div class="row gap-3">
     <button type="submit" class="btn btn--primary">Save category</button>
     <a href="{% url 'products:admin_category_list' %}" class="btn btn--ghost">Cancel</a>
   </div>
 </form>
 {% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/single_image.js' %}"></script>
+{% endblock %}
+
